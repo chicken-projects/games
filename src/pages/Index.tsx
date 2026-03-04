@@ -31,7 +31,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center gap-3">
           <div className="flex items-center gap-2 shrink-0">
             <Gamepad2 className="w-6 h-6 text-primary" />
-            <h1 className="text-xl font-bold text-foreground">Game Library</h1>
+            <h1 className="text-xl font-bold text-foreground">Games</h1>
           </div>
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -39,12 +39,12 @@ const Index = () => {
               placeholder="Search games..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 bg-secondary border-border"
-            />
+              className="pl-9 bg-secondary border-border" />
+            
           </div>
-          <p className="text-sm text-muted-foreground shrink-0">
-            {games.length} / {TOTAL_SLOTS} filled
-          </p>
+          
+
+          
         </div>
       </header>
 
@@ -54,35 +54,35 @@ const Index = () => {
             const game = gameMap.get(id);
             if (game) {
               const Wrapper = game.link ? "a" : "div";
-              const wrapperProps = game.link
-                ? { href: game.link, target: "_blank" as const, rel: "noopener noreferrer" }
-                : {};
+              const wrapperProps = game.link ?
+              { href: game.link, target: "_blank" as const, rel: "noopener noreferrer" } :
+              {};
               return (
                 <Wrapper key={id} className="game-slot-filled aspect-[3/4] flex flex-col" {...wrapperProps}>
-                  {game.image ? (
-                    <img src={game.image} alt={game.name} className="w-full h-3/4 object-cover" />
-                  ) : (
-                    <div className="w-full h-3/4 bg-muted flex items-center justify-center">
+                  {game.image ?
+                  <img src={game.image} alt={game.name} className="w-full h-3/4 object-cover" /> :
+
+                  <div className="w-full h-3/4 bg-muted flex items-center justify-center">
                       <Gamepad2 className="w-8 h-8 text-muted-foreground" />
                     </div>
-                  )}
+                  }
                   <div className="p-2 flex items-center gap-1">
                     <p className="text-sm font-medium truncate text-foreground flex-1">{game.name}</p>
                     {game.link && <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0" />}
                   </div>
-                </Wrapper>
-              );
+                </Wrapper>);
+
             }
             return (
               <div key={id} className="game-slot-empty aspect-[3/4]">
                 <span className="text-xs text-muted-foreground">#{id}</span>
-              </div>
-            );
+              </div>);
+
           })}
         </div>
       </main>
-    </div>
-  );
+    </div>);
+
 };
 
 export default Index;
