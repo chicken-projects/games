@@ -1,11 +1,21 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Search, Gamepad2, ExternalLink } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { games } from "@/data/games";
 import type { Game } from "@/data/gameTypes";
 
+const NOTICE_URL = "/notice.txt"; // Change this to any URL hosting your text
+
 const Index = () => {
   const [search, setSearch] = useState("");
+  const [notice, setNotice] = useState("");
+
+  useEffect(() => {
+    fetch(NOTICE_URL)
+      .then((r) => (r.ok ? r.text() : ""))
+      .then((t) => setNotice(t.trim()))
+      .catch(() => setNotice(""));
+  }, []);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return games;
@@ -30,9 +40,11 @@ const Index = () => {
               className="pl-9 bg-secondary border-border rounded-full" />
             
           </div>
-          
-
-          
+          {notice && (
+            <div className="shrink-0 max-w-xs px-3 py-1.5 bg-secondary text-foreground text-sm rounded-full border border-border truncate">
+              {notice}
+            </div>
+          )}
         </div>
       </header>
 
