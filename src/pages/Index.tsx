@@ -8,6 +8,14 @@ const NOTICE_URL = "/notice.txt"; // Change this to any URL hosting your text
 
 const Index = () => {
   const [search, setSearch] = useState("");
+  const [notice, setNotice] = useState("");
+
+  useEffect(() => {
+    fetch(NOTICE_URL)
+      .then((r) => (r.ok ? r.text() : ""))
+      .then((t) => setNotice(t.trim()))
+      .catch(() => setNotice(""));
+  }, []);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return games;
