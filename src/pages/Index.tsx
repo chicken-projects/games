@@ -1,8 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Search, Gamepad2, ExternalLink } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { games } from "@/data/games";
 import type { Game } from "@/data/gameTypes";
+
+const NOTICE_URL = "/notice.txt"; // Change this to any URL hosting your text
 
 const Index = () => {
   const [search, setSearch] = useState("");
