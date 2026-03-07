@@ -3,8 +3,7 @@ import { Search, Gamepad2, ExternalLink } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { games } from "@/data/games";
 import type { Game } from "@/data/gameTypes";
-
-const NOTICE_URL = "/notice.txt"; // Change this to any URL hosting your text
+import { NOTICE_URL } from "@/data/config";
 
 const Index = () => {
   const [search, setSearch] = useState("");
