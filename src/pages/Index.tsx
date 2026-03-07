@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Search, Gamepad2, ExternalLink } from "lucide-react";
+import { Search, Gamepad2, ExternalLink, Gamepad } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { games } from "@/data/games";
 import type { Game } from "@/data/gameTypes";
@@ -10,10 +10,10 @@ const Index = () => {
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
-    fetch(NOTICE_URL)
-      .then((r) => (r.ok ? r.text() : ""))
-      .then((t) => setNotice(t.trim()))
-      .catch(() => setNotice(""));
+    fetch(NOTICE_URL).
+    then((r) => r.ok ? r.text() : "").
+    then((t) => setNotice(t.trim())).
+    catch(() => setNotice(""));
   }, []);
 
   const filtered = useMemo(() => {
@@ -27,7 +27,7 @@ const Index = () => {
       <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center gap-3">
           <div className="flex items-center gap-2 shrink-0">
-            <Gamepad2 className="w-6 h-6 text-primary" />
+            <Gamepad className="w-6 h-6 text-primary" />
             <h1 className="text-xl font-bold text-foreground">Games</h1>
           </div>
           <div className="relative flex-1 max-w-lg mx-auto">
@@ -39,11 +39,11 @@ const Index = () => {
               className="pl-9 bg-secondary border-border rounded-full" />
             
           </div>
-          {notice && (
-            <div className="shrink-0 max-w-xs px-3 py-1.5 bg-secondary text-foreground text-sm rounded-full border border-border truncate">
+          {notice &&
+          <div className="shrink-0 max-w-xs px-3 py-1.5 bg-secondary text-foreground text-sm rounded-full border border-border truncate">
               {notice}
             </div>
-          )}
+          }
         </div>
       </header>
 
