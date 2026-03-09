@@ -1,14 +1,18 @@
 import { useState, useMemo, useEffect } from "react";
-import { Search, Gamepad2, ExternalLink, Gamepad } from "lucide-react";
+import { Search, Gamepad2, ExternalLink, Gamepad, Heart } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { games } from "@/data/games";
 import type { Game } from "@/data/gameTypes";
 import { NOTICE_URL } from "@/data/config";
 import { DataPortability } from "@/components/DataPortability";
+import { useFavorites } from "@/hooks/use-favorites";
+import { toast } from "@/hooks/use-toast";
 
 const Index = () => {
   const [search, setSearch] = useState("");
   const [notice, setNotice] = useState("");
+  const [showFavs, setShowFavs] = useState(false);
+  const { favorites, toggle, isFavorite, count, max } = useFavorites();
 
   useEffect(() => {
     fetch(NOTICE_URL).
@@ -18,10 +22,24 @@ const Index = () => {
   }, []);
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return games;
-    const q = search.toLowerCase();
-    return games.filter((g) => g.name.toLowerCase().includes(q));
-  }, [search]);
+    let list = games;
+    if (showFavs) list = list.filter((g) => favorites.includes(g.id));
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter((g) => g.name.toLowerCase().includes(q));
+    }
+    return list;
+  }, [search, showFavs, favorites]);
+
+  const handleToggleFav = (e: React.MouseEvent, id: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isFavorite(id) && count >= max) {
+      toast({ title: "Favorites full", description: `You can only favorite up to ${max} games.`, variant: "destructive" });
+      return;
+    }
+    toggle(id);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -31,6 +49,17 @@ const Index = () => {
             <Gamepad className="w-6 h-6 text-primary" />
             <h1 className="text-xl font-bold text-foreground">Games</h1>
           </div>
+          <button
+            onClick={() => setShowFavs(!showFavs)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors shrink-0 ${
+              showFavs
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-secondary text-secondary-foreground border-border hover:border-primary/50"
+            }`}
+          >
+            <Heart className={`w-3.5 h-3.5 ${showFavs ? "fill-current" : ""}`} />
+            Favorites ({count}/{max})
+          </button>
           <div className="relative flex-1 max-w-lg mx-auto">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -38,7 +67,6 @@ const Index = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9 bg-secondary border-border rounded-full" />
-            
           </div>
           <DataPortability />
           {notice &&
@@ -57,7 +85,14 @@ const Index = () => {
             { href: game.link, target: "_blank" as const, rel: "noopener noreferrer" } :
             {};
             return (
-              <Wrapper key={game.id} className="game-slot-filled aspect-[3/4] flex flex-col" {...wrapperProps}>
+              <Wrapper key={game.id} className="game-slot-filled aspect-[3/4] flex flex-col relative group" {...wrapperProps}>
+                <button
+                  onClick={(e) => handleToggleFav(e, game.id)}
+                  className="absolute top-1.5 right-1.5 z-[2] p-1 rounded-full bg-background/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                  aria-label={isFavorite(game.id) ? "Remove from favorites" : "Add to favorites"}
+                >
+                  <Heart className={`w-4 h-4 transition-colors ${isFavorite(game.id) ? "fill-destructive text-destructive" : "text-muted-foreground hover:text-destructive"}`} />
+                </button>
                 {game.image ?
                 <img src={game.image} alt={game.name} className="w-full h-3/4 object-cover" /> :
                 <div className="w-full h-3/4 bg-muted flex items-center justify-center">
