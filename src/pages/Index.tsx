@@ -40,6 +40,7 @@ const Index = () => {
               className="pl-9 bg-secondary border-border rounded-full" />
             
           </div>
+          <DataPortability />
           {notice &&
           <div className="shrink-0 max-w-xs px-3 py-1.5 bg-secondary text-foreground text-sm rounded-full border border-border truncate">
               {notice}
