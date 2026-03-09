@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { games } from "@/data/games";
 import type { Game } from "@/data/gameTypes";
 import { NOTICE_URL } from "@/data/config";
+import { DataPortability } from "@/components/DataPortability";
 
 const Index = () => {
   const [search, setSearch] = useState("");
