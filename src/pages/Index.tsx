@@ -13,7 +13,14 @@ const Index = () => {
   const [search, setSearch] = useState("");
   const [notice, setNotice] = useState("");
   const [showFavs, setShowFavs] = useState(false);
+  const [selectedGenre, setSelectedGenre] = useState("all");
   const { favorites, toggle, isFavorite, count, max } = useFavorites();
+
+  const genres = useMemo(() => {
+    const set = new Set<string>();
+    games.forEach((g) => { if (g.genre) set.add(g.genre); });
+    return Array.from(set).sort();
+  }, []);
 
   useEffect(() => {
     fetch(NOTICE_URL).
