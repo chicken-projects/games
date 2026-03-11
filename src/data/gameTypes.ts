@@ -4,4 +4,5 @@ export interface Game {
   image?: string;
   link?: string;
   notes?: string;
+  genre?: string;
 }

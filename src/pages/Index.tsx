@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
-import { Search, Gamepad2, ExternalLink, Gamepad, Heart } from "lucide-react";
+import { Search, Gamepad2, ExternalLink, Gamepad, Heart, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { games } from "@/data/games";
 import type { Game } from "@/data/gameTypes";
 import { NOTICE_URL } from "@/data/config";
@@ -12,7 +13,14 @@ const Index = () => {
   const [search, setSearch] = useState("");
   const [notice, setNotice] = useState("");
   const [showFavs, setShowFavs] = useState(false);
+  const [selectedGenre, setSelectedGenre] = useState("all");
   const { favorites, toggle, isFavorite, count, max } = useFavorites();
+
+  const genres = useMemo(() => {
+    const set = new Set<string>();
+    games.forEach((g) => { if (g.genre) set.add(g.genre); });
+    return Array.from(set).sort();
+  }, []);
 
   useEffect(() => {
     fetch(NOTICE_URL).
@@ -24,12 +32,13 @@ const Index = () => {
   const filtered = useMemo(() => {
     let list = games;
     if (showFavs) list = list.filter((g) => favorites.includes(g.id));
+    if (selectedGenre !== "all") list = list.filter((g) => g.genre === selectedGenre);
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter((g) => g.name.toLowerCase().includes(q));
     }
     return list;
-  }, [search, showFavs, favorites]);
+  }, [search, showFavs, favorites, selectedGenre]);
 
   const handleToggleFav = (e: React.MouseEvent, id: number) => {
     e.preventDefault();
@@ -60,6 +69,20 @@ const Index = () => {
             <Heart className={`w-3.5 h-3.5 ${showFavs ? "fill-current" : ""}`} />
             Favorites ({count}/{max})
           </button>
+          {genres.length > 0 && (
+            <Select value={selectedGenre} onValueChange={setSelectedGenre}>
+              <SelectTrigger className="w-[140px] shrink-0 rounded-full bg-secondary border-border">
+                <Filter className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
+                <SelectValue placeholder="Genre" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Genres</SelectItem>
+                {genres.map((g) => (
+                  <SelectItem key={g} value={g}>{g}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <div className="relative flex-1 max-w-lg mx-auto">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
