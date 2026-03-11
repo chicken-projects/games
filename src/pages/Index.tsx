@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
-import { Search, Gamepad2, ExternalLink, Gamepad, Heart, Filter } from "lucide-react";
+import { Search, Gamepad2, ExternalLink, Gamepad, Heart, Filter, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { games } from "@/data/games";
 import type { Game } from "@/data/gameTypes";
 import { NOTICE_URL } from "@/data/config";
@@ -13,7 +13,7 @@ const Index = () => {
   const [search, setSearch] = useState("");
   const [notice, setNotice] = useState("");
   const [showFavs, setShowFavs] = useState(false);
-  const [selectedGenre, setSelectedGenre] = useState("all");
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const { favorites, toggle, isFavorite, count, max } = useFavorites();
 
   const genres = useMemo(() => {
@@ -32,13 +32,19 @@ const Index = () => {
   const filtered = useMemo(() => {
     let list = games;
     if (showFavs) list = list.filter((g) => favorites.includes(g.id));
-    if (selectedGenre !== "all") list = list.filter((g) => g.genre === selectedGenre);
+    if (selectedGenres.length > 0) list = list.filter((g) => g.genre && selectedGenres.includes(g.genre));
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter((g) => g.name.toLowerCase().includes(q));
     }
     return list;
-  }, [search, showFavs, favorites, selectedGenre]);
+  }, [search, showFavs, favorites, selectedGenres]);
+
+  const toggleGenre = (genre: string) => {
+    setSelectedGenres((prev) =>
+      prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre]
+    );
+  };
 
   const handleToggleFav = (e: React.MouseEvent, id: number) => {
     e.preventDefault();
@@ -58,31 +64,59 @@ const Index = () => {
             <Gamepad className="w-6 h-6 text-primary" />
             <h1 className="text-xl font-bold text-foreground">Games</h1>
           </div>
-          <button
-            onClick={() => setShowFavs(!showFavs)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors shrink-0 ${
-              showFavs
-                ? "bg-primary text-primary-foreground border-primary"
-                : "bg-secondary text-secondary-foreground border-border hover:border-primary/50"
-            }`}
-          >
-            <Heart className={`w-3.5 h-3.5 ${showFavs ? "fill-current" : ""}`} />
-            Favorites ({count}/{max})
-          </button>
-          {genres.length > 0 && (
-            <Select value={selectedGenre} onValueChange={setSelectedGenre}>
-              <SelectTrigger className="h-auto px-3 py-1.5 w-auto shrink-0 rounded-full bg-secondary border-border text-xs font-medium">
-                <Filter className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
-                <SelectValue placeholder="Genre" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Genres</SelectItem>
-                {genres.map((g) => (
-                  <SelectItem key={g} value={g}>{g}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={() => setShowFavs(!showFavs)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                showFavs
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-secondary text-secondary-foreground border-border hover:border-primary/50"
+              }`}
+            >
+              <Heart className={`w-3.5 h-3.5 ${showFavs ? "fill-current" : ""}`} />
+              Favorites ({count}/{max})
+            </button>
+            {genres.length > 0 && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                      selectedGenres.length > 0
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-secondary text-secondary-foreground border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <Filter className="w-3.5 h-3.5" />
+                    {selectedGenres.length > 0 ? `Genres (${selectedGenres.length})` : "Genres"}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-44 p-1.5" align="start">
+                  {genres.map((g) => (
+                    <button
+                      key={g}
+                      onClick={() => toggleGenre(g)}
+                      className="flex items-center gap-2 w-full px-2.5 py-1.5 text-sm rounded-md hover:bg-accent transition-colors text-foreground"
+                    >
+                      <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${
+                        selectedGenres.includes(g) ? "bg-primary border-primary" : "border-border"
+                      }`}>
+                        {selectedGenres.includes(g) && <Check className="w-3 h-3 text-primary-foreground" />}
+                      </div>
+                      {g}
+                    </button>
+                  ))}
+                  {selectedGenres.length > 0 && (
+                    <button
+                      onClick={() => setSelectedGenres([])}
+                      className="w-full px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground text-center mt-1 border-t border-border"
+                    >
+                      Clear all
+                    </button>
+                  )}
+                </PopoverContent>
+              </Popover>
+            )}
+          </div>
           <div className="relative flex-1 max-w-lg mx-auto">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -91,12 +125,14 @@ const Index = () => {
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9 bg-secondary border-border rounded-full" />
           </div>
-          <DataPortability />
-          {notice &&
-          <div className="shrink-0 max-w-xs px-3 py-1.5 bg-secondary text-foreground text-sm rounded-full border border-border truncate">
-              {notice}
-            </div>
-          }
+          <div className="flex items-center gap-1.5 shrink-0">
+            <DataPortability />
+            {notice &&
+              <div className="px-3 py-1.5 bg-secondary text-secondary-foreground text-xs font-medium rounded-full border border-border truncate max-w-xs">
+                {notice}
+              </div>
+            }
+          </div>
         </div>
       </header>
 
