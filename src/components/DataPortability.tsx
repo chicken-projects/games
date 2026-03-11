@@ -129,12 +129,12 @@ export function DataPortability() {
 
   return (
     <div className="flex items-center gap-1.5 shrink-0">
-      <Button variant="outline" size="sm" onClick={handleExport} className="gap-1.5 rounded-full text-xs">
+      <button onClick={handleExport} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-border bg-secondary text-secondary-foreground hover:border-primary/50 transition-colors">
         <Download className="w-3.5 h-3.5" /> Export
-      </Button>
-      <Button variant="outline" size="sm" onClick={handleImport} className="gap-1.5 rounded-full text-xs">
+      </button>
+      <button onClick={handleImport} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-border bg-secondary text-secondary-foreground hover:border-primary/50 transition-colors">
         <Upload className="w-3.5 h-3.5" /> Import
-      </Button>
+      </button>
     </div>
   );
 }
