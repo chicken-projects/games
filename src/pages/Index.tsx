@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
-import { Search, Gamepad2, ExternalLink, Gamepad, Heart } from "lucide-react";
+import { Search, Gamepad2, ExternalLink, Gamepad, Heart, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { games } from "@/data/games";
 import type { Game } from "@/data/gameTypes";
 import { NOTICE_URL } from "@/data/config";
