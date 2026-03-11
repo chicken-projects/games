@@ -2,14 +2,14 @@ import { useState, useMemo, useEffect } from "react";
 import { Search, Gamepad2, ExternalLink, Gamepad, Heart, Filter, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { games } from "@/data/games";
-import type { Game } from "@/data/gameTypes";
+import { useGames } from "@/data/games";
 import { NOTICE_URL } from "@/data/config";
 import { DataPortability } from "@/components/DataPortability";
 import { useFavorites } from "@/hooks/use-favorites";
 import { toast } from "@/hooks/use-toast";
 
 const Index = () => {
+  const { games, loading } = useGames();
   const [search, setSearch] = useState("");
   const [notice, setNotice] = useState("");
   const [showFavs, setShowFavs] = useState(false);
@@ -20,13 +20,13 @@ const Index = () => {
     const set = new Set<string>();
     games.forEach((g) => { if (g.genre) set.add(g.genre); });
     return Array.from(set).sort();
-  }, []);
+  }, [games]);
 
   useEffect(() => {
-    fetch(NOTICE_URL).
-    then((r) => r.ok ? r.text() : "").
-    then((t) => setNotice(t.trim())).
-    catch(() => setNotice(""));
+    fetch(NOTICE_URL)
+      .then((r) => r.ok ? r.text() : "")
+      .then((t) => setNotice(t.trim()))
+      .catch(() => setNotice(""));
   }, []);
 
   const filtered = useMemo(() => {
@@ -38,7 +38,7 @@ const Index = () => {
       list = list.filter((g) => g.name.toLowerCase().includes(q));
     }
     return list;
-  }, [search, showFavs, favorites, selectedGenres]);
+  }, [search, showFavs, favorites, selectedGenres, games]);
 
   const toggleGenre = (genre: string) => {
     setSelectedGenres((prev) =>
@@ -123,51 +123,58 @@ const Index = () => {
               placeholder="Search games..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 bg-secondary border-border rounded-full" />
+              className="pl-9 bg-secondary border-border rounded-full"
+            />
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
             <DataPortability />
-            {notice &&
+            {notice && (
               <div className="px-3 py-1.5 bg-secondary text-secondary-foreground text-xs font-medium rounded-full border border-border truncate max-w-xs">
                 {notice}
               </div>
-            }
+            )}
           </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-          {filtered.map((game) => {
-            const Wrapper = game.link ? "a" : "div";
-            const wrapperProps = game.link ?
-            { href: game.link, target: "_blank" as const, rel: "noopener noreferrer" } :
-            {};
-            return (
-              <Wrapper key={game.id} className="game-slot-filled aspect-[3/4] flex flex-col relative group" {...wrapperProps}>
-                <button
-                  onClick={(e) => handleToggleFav(e, game.id)}
-                  className="absolute top-1.5 right-1.5 z-[2] p-1 rounded-full bg-background/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
-                  aria-label={isFavorite(game.id) ? "Remove from favorites" : "Add to favorites"}
-                >
-                  <Heart className={`w-4 h-4 transition-colors ${isFavorite(game.id) ? "fill-destructive text-destructive" : "text-muted-foreground hover:text-destructive"}`} />
-                </button>
-                {game.image ?
-                <img src={game.image} alt={game.name} className="w-full h-3/4 object-cover" /> :
-                <div className="w-full h-3/4 bg-muted flex items-center justify-center">
-                    <Gamepad2 className="w-8 h-8 text-muted-foreground" />
+        {loading ? (
+          <div className="text-center text-muted-foreground py-12">Loading games...</div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+            {filtered.map((game) => {
+              const Wrapper = game.link ? "a" : "div";
+              const wrapperProps = game.link
+                ? { href: game.link, target: "_blank" as const, rel: "noopener noreferrer" }
+                : {};
+              return (
+                <Wrapper key={game.id} className="game-slot-filled aspect-[3/4] flex flex-col relative group" {...wrapperProps}>
+                  <button
+                    onClick={(e) => handleToggleFav(e, game.id)}
+                    className="absolute top-1.5 right-1.5 z-[2] p-1 rounded-full bg-background/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                    aria-label={isFavorite(game.id) ? "Remove from favorites" : "Add to favorites"}
+                  >
+                    <Heart className={`w-4 h-4 transition-colors ${isFavorite(game.id) ? "fill-destructive text-destructive" : "text-muted-foreground hover:text-destructive"}`} />
+                  </button>
+                  {game.image ? (
+                    <img src={game.image} alt={game.name} className="w-full h-3/4 object-cover" />
+                  ) : (
+                    <div className="w-full h-3/4 bg-muted flex items-center justify-center">
+                      <Gamepad2 className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="p-2 flex items-center gap-1">
+                    <p className="text-sm font-medium truncate text-foreground flex-1">{game.name}</p>
+                    {game.link && <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0" />}
                   </div>
-                }
-                <div className="p-2 flex items-center gap-1">
-                  <p className="text-sm font-medium truncate text-foreground flex-1">{game.name}</p>
-                  {game.link && <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0" />}
-                </div>
-              </Wrapper>);
-          })}
-        </div>
+                </Wrapper>
+              );
+            })}
+          </div>
+        )}
       </main>
-    </div>);
-
+    </div>
+  );
 };
 
 export default Index;
