@@ -1,3 +1,12 @@
 [
-
+  { "id": 1, "name": "Celeste", "genre": "Platformer", "link": "https://www.celestegame.com", "image": "https://cdn.cloudflare.steamstatic.com/steam/apps/504230/header.jpg" },
+  { "id": 2, "name": "Hollow Knight", "genre": "Metroidvania", "link": "https://www.hollowknight.com", "image": "https://cdn.cloudflare.steamstatic.com/steam/apps/367520/header.jpg" },
+  { "id": 3, "name": "Stardew Valley", "genre": "Simulation", "link": "https://www.stardewvalley.net", "image": "https://cdn.cloudflare.steamstatic.com/steam/apps/413150/header.jpg" },
+  { "id": 4, "name": "Hades", "genre": "Roguelike", "link": "https://www.supergiantgames.com/games/hades", "image": "https://cdn.cloudflare.steamstatic.com/steam/apps/1145360/header.jpg" },
+  { "id": 5, "name": "The Witcher 3", "genre": "RPG", "link": "https://www.thewitcher.com", "image": "https://cdn.cloudflare.steamstatic.com/steam/apps/292030/header.jpg" },
+  { "id": 6, "name": "Portal 2", "genre": "Puzzle", "link": "https://www.thinkwithportals.com", "image": "https://cdn.cloudflare.steamstatic.com/steam/apps/620/header.jpg" },
+  { "id": 7, "name": "Dead Cells", "genre": "Roguelike", "link": "https://dead-cells.com", "image": "https://cdn.cloudflare.steamstatic.com/steam/apps/588650/header.jpg" },
+  { "id": 8, "name": "Terraria", "genre": "Sandbox", "link": "https://terraria.org", "image": "https://cdn.cloudflare.steamstatic.com/steam/apps/105600/header.jpg" },
+  { "id": 9, "name": "Ori and the Blind Forest", "genre": "Platformer", "image": "https://cdn.cloudflare.steamstatic.com/steam/apps/261570/header.jpg" },
+  { "id": 10, "name": "Disco Elysium", "genre": "RPG", "image": "https://cdn.cloudflare.steamstatic.com/steam/apps/632470/header.jpg" }
 ]
