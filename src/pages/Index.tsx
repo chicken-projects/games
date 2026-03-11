@@ -13,7 +13,7 @@ const Index = () => {
   const [search, setSearch] = useState("");
   const [notice, setNotice] = useState("");
   const [showFavs, setShowFavs] = useState(false);
-  const [selectedGenre, setSelectedGenre] = useState("all");
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const { favorites, toggle, isFavorite, count, max } = useFavorites();
 
   const genres = useMemo(() => {
