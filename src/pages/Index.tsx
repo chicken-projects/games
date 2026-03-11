@@ -71,7 +71,7 @@ const Index = () => {
           </button>
           {genres.length > 0 && (
             <Select value={selectedGenre} onValueChange={setSelectedGenre}>
-              <SelectTrigger className="w-[140px] shrink-0 rounded-full bg-secondary border-border">
+              <SelectTrigger className="h-auto px-3 py-1.5 w-auto shrink-0 rounded-full bg-secondary border-border text-xs font-medium">
                 <Filter className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
                 <SelectValue placeholder="Genre" />
               </SelectTrigger>
