@@ -32,13 +32,19 @@ const Index = () => {
   const filtered = useMemo(() => {
     let list = games;
     if (showFavs) list = list.filter((g) => favorites.includes(g.id));
-    if (selectedGenre !== "all") list = list.filter((g) => g.genre === selectedGenre);
+    if (selectedGenres.length > 0) list = list.filter((g) => g.genre && selectedGenres.includes(g.genre));
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter((g) => g.name.toLowerCase().includes(q));
     }
     return list;
-  }, [search, showFavs, favorites, selectedGenre]);
+  }, [search, showFavs, favorites, selectedGenres]);
+
+  const toggleGenre = (genre: string) => {
+    setSelectedGenres((prev) =>
+      prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre]
+    );
+  };
 
   const handleToggleFav = (e: React.MouseEvent, id: number) => {
     e.preventDefault();
