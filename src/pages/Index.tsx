@@ -23,7 +23,7 @@ const Index = () => {
   }, [games]);
 
   useEffect(() => {
-    fetch(NOTICE_URL)
+    fetch(NOTICE_URL, { cache: "no-store" })
       .then((r) => r.ok ? r.text() : "")
       .then((t) => setNotice(t.trim()))
       .catch(() => setNotice(""));

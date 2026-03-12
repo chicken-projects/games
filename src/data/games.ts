@@ -6,7 +6,7 @@ export function useGames() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/games.json")
+    fetch("/games.json", { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => setGames(data as Game[]))
       .catch(() => setGames([]))
