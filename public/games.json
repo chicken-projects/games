@@ -1,5 +1,5 @@
 [
-  { "id": 1, "name": "GN-MATH", "image": "", "link": "g/f/gn-math", "genre": "Puzzle" },
+  { "id": 1, "name": "GN-MATH", "image": "", "link": "g/f/gn-math", "genre": "Other" },
   { "id": 2, "name": "Old Site", "image": "", "link": "g/f/oldsite", "genre": "Other" },
   { "id": 3, "name": "More Games", "image": "", "link": "g/f/codeorg.html", "genre": "Other" },
   { "id": 4, "name": "Slope", "image": "", "link": "g/slope.html", "genre": "Racing" },
@@ -10,7 +10,7 @@
   { "id": 9, "name": "Chrome Dino", "image": "", "link": "g/f/cd", "genre": "Arcade" },
   { "id": 10, "name": "Run 3", "image": "", "link": "g/run3.html", "genre": "Platformer" },
   { "id": 11, "name": "Slice Master", "image": "", "link": "g/f/sm", "genre": "Arcade" },
-  { "id": 12, "name": "Geometry Dash Lite", "image": "", "link": "g/geometrydashlite.html", "genre": "Platformer" },
+  { "id": 12, "name": "Geometry Dash Lite", "image": "", "link": "g/geometrydashlite.html", "genre": "Rhythm" },
   { "id": 13, "name": "Temple Run 2", "image": "", "link": "g/templerun2.html", "genre": "Platformer" },
   { "id": 14, "name": "Bit Life", "image": "", "link": "g/bitlife.html", "genre": "Simulation" },
   { "id": 15, "name": "Eaglercraft", "image": "", "link": "g/f/eagler", "genre": "Sandbox" },
