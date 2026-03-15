@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>hi</title>
+        <link rel="icon" type="image/x-icon" href="favicon.png">
+        <style>
+            html { color-scheme: light dark; }
+            body { width: 35em; margin: 0 auto;
+            font-family: Tahoma, Verdana, Arial, sans-serif; }
+        </style>
+    </head>
+    <body>
+        <h1 id=t style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)">hi <h1>
+	<input id=i autofocus style="position:absolute;opacity:0">
+	<script>
+	  onkeydown=e=>{
+	  if(e.key=="Backspace") t.textContent=t.textContent.slice(0,-1)
+	  else if(e.key.length==1) t.textContent+=e.key
+	  i.focus()
+	  }
+	</script>
+    </body>
+</html>
