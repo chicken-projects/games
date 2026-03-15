@@ -174,6 +174,7 @@ const Index = () => {
           </div>
         )}
       </main>
+      <ScrollButtons />
     </div>
   );
 };
