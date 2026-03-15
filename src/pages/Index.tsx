@@ -5,6 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useGames } from "@/data/games";
 import { NOTICE_URL } from "@/data/config";
 import { DataPortability } from "@/components/DataPortability";
+import { ScrollButtons } from "@/components/ScrollButtons";
 import { useFavorites } from "@/hooks/use-favorites";
 import { toast } from "@/hooks/use-toast";
 
@@ -173,6 +174,7 @@ const Index = () => {
           </div>
         )}
       </main>
+      <ScrollButtons />
     </div>
   );
 };
