@@ -11,7 +11,7 @@ export const ScrollButtons = () => {
   }, []);
 
   return (
-    <div className="fixed bottom-4 right-4 z-20 flex flex-col gap-1.5">
+    <div className="fixed bottom-4 right-4 z-20 flex flex-col gap-1.5 items-end">
       {showUp && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
@@ -21,13 +21,20 @@ export const ScrollButtons = () => {
           <ChevronUp className="w-4 h-4" />
         </button>
       )}
-      <button
-        onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" })}
-        className="p-2 rounded-full bg-secondary/80 backdrop-blur-sm border border-border text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors"
-        aria-label="Scroll to bottom"
-      >
-        <ChevronDown className="w-4 h-4" />
-      </button>
+      <div className="group flex items-center gap-0">
+        <div className="max-w-0 group-hover:max-w-[260px] overflow-hidden transition-all duration-300 ease-out opacity-0 group-hover:opacity-100">
+          <span className="whitespace-nowrap text-xs font-medium px-3 py-2 rounded-l-full bg-secondary/80 backdrop-blur-sm border border-r-0 border-border block shimmer-text">
+            Scroll down for newer games
+          </span>
+        </div>
+        <button
+          onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" })}
+          className="p-2 rounded-full bg-secondary/80 backdrop-blur-sm border border-border text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors shrink-0"
+          aria-label="Scroll to bottom"
+        >
+          <ChevronDown className="w-4 h-4" />
+        </button>
+      </div>
     </div>
   );
 };
