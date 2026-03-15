@@ -61,14 +61,16 @@
   background: linear-gradient(
     90deg,
     hsl(var(--muted-foreground)) 0%,
-    hsl(var(--primary)) 40%,
+    hsl(var(--muted-foreground)) 30%,
+    hsl(var(--primary)) 48%,
     hsl(var(--foreground)) 50%,
-    hsl(var(--primary)) 60%,
+    hsl(var(--primary)) 52%,
+    hsl(var(--muted-foreground)) 70%,
     hsl(var(--muted-foreground)) 100%
   );
-  background-size: 200% auto;
+  background-size: 250% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: shimmer 2.5s linear infinite;
+  animation: shimmer 4s ease-in-out infinite;
 }
