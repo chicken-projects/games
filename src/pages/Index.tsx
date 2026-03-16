@@ -147,12 +147,14 @@ const Index = () => {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
             {filtered.map((game) => {
-              const Wrapper = game.link ? "a" : "div";
-              const wrapperProps = game.link
-                ? { href: game.link, target: "_blank" as const, rel: "noopener noreferrer" }
-                : {};
+              const handleGameClick = (e: React.MouseEvent) => {
+                if (game.link) {
+                  e.preventDefault();
+                  openInAboutBlank(game.link);
+                }
+              };
               return (
-                <Wrapper key={game.id} className="game-slot-filled aspect-[3/4] flex flex-col relative group" {...wrapperProps}>
+                <div key={game.id} onClick={handleGameClick} className="game-slot-filled aspect-[3/4] flex flex-col relative group cursor-pointer">
                   <button
                     onClick={(e) => handleToggleFav(e, game.id)}
                     className="absolute top-1.5 right-1.5 z-[2] p-1 rounded-full bg-background/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
