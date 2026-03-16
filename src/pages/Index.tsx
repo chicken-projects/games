@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Search, Gamepad2, ExternalLink, Gamepad, Heart, Filter, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -7,6 +7,7 @@ import { NOTICE_URL } from "@/data/config";
 import { DataPortability } from "@/components/DataPortability";
 import { ScrollButtons } from "@/components/ScrollButtons";
 import { AboutBlankButton } from "@/components/AboutBlankButton";
+import { openInAboutBlank } from "@/utils/about-blank";
 import { useFavorites } from "@/hooks/use-favorites";
 import { toast } from "@/hooks/use-toast";
 
@@ -146,12 +147,14 @@ const Index = () => {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
             {filtered.map((game) => {
-              const Wrapper = game.link ? "a" : "div";
-              const wrapperProps = game.link
-                ? { href: game.link, target: "_blank" as const, rel: "noopener noreferrer" }
-                : {};
+              const handleGameClick = (e: React.MouseEvent) => {
+                if (game.link) {
+                  e.preventDefault();
+                  openInAboutBlank(game.link);
+                }
+              };
               return (
-                <Wrapper key={game.id} className="game-slot-filled aspect-[3/4] flex flex-col relative group" {...wrapperProps}>
+                <div key={game.id} onClick={handleGameClick} className="game-slot-filled aspect-[3/4] flex flex-col relative group cursor-pointer">
                   <button
                     onClick={(e) => handleToggleFav(e, game.id)}
                     className="absolute top-1.5 right-1.5 z-[2] p-1 rounded-full bg-background/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
@@ -170,7 +173,7 @@ const Index = () => {
                     <p className="text-sm font-medium truncate text-foreground flex-1">{game.name}</p>
                     {game.link && <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0" />}
                   </div>
-                </Wrapper>
+                </div>
               );
             })}
           </div>
