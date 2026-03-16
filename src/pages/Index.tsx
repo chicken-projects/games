@@ -6,6 +6,7 @@ import { useGames } from "@/data/games";
 import { NOTICE_URL } from "@/data/config";
 import { DataPortability } from "@/components/DataPortability";
 import { ScrollButtons } from "@/components/ScrollButtons";
+import { AboutBlankButton } from "@/components/AboutBlankButton";
 import { useFavorites } from "@/hooks/use-favorites";
 import { toast } from "@/hooks/use-toast";
 
@@ -128,6 +129,7 @@ const Index = () => {
             />
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
+            <AboutBlankButton />
             <DataPortability />
             {notice && (
               <div className="px-3 py-1.5 bg-secondary text-secondary-foreground text-xs font-medium rounded-full border border-border truncate max-w-xs">
