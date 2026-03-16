@@ -173,7 +173,7 @@ const Index = () => {
                     <p className="text-sm font-medium truncate text-foreground flex-1">{game.name}</p>
                     {game.link && <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0" />}
                   </div>
-                </Wrapper>
+                </div>
               );
             })}
           </div>
