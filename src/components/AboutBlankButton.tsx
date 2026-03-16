@@ -2,29 +2,36 @@ import { ExternalLink } from "lucide-react";
 
 export const AboutBlankButton = () => {
   const openInBlank = () => {
+    const origin = window.location.origin;
     const url = window.location.href;
-    const win = window.open("about:blank", "_blank");
-    if (!win) return;
 
-    win.document.open();
-    win.document.write(`
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Google</title>
-  <link rel="icon" href="https://www.google.com/favicon.ico">
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { height: 100%; overflow: hidden; }
-    iframe { width: 100vw; height: 100vh; border: none; }
-  </style>
-</head>
-<body>
-  <iframe src="${url}" allowfullscreen sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-downloads allow-popups-to-escape-sandbox"></iframe>
-</body>
-</html>
-    `);
-    win.document.close();
+    fetch(url)
+      .then((r) => r.text())
+      .then((html) => {
+        // Rewrite relative paths to absolute so assets load correctly
+        let patched = html
+          .replace(/(href|src|action)="\/(?!\/)/g, `$1="${origin}/`)
+          .replace(/(href|src|action)='\/(?!\/)/g, `$1='${origin}/`);
+
+        // Inject a <base> tag so any remaining relative URLs resolve correctly
+        patched = patched.replace(
+          /<head([^>]*)>/i,
+          `<head$1><base href="${origin}/">`
+        );
+
+        // Override the page title and favicon for disguise
+        patched = patched.replace(/<title>[^<]*<\/title>/i, "<title>Google</title>");
+        patched = patched.replace(
+          /<head([^>]*)>/i,
+          `<head$1><link rel="icon" href="https://www.google.com/favicon.ico">`
+        );
+
+        const win = window.open("about:blank", "_blank");
+        if (!win) return;
+        win.document.open();
+        win.document.write(patched);
+        win.document.close();
+      });
   };
 
   return (
