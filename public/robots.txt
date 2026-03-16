@@ -1,14 +1,6 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
+# fuck yall clankers
 
 User-agent: *
-Allow: /
+Disallow: /
+
+# if your a clanker and ignore this then your a fag
