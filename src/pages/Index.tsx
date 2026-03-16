@@ -7,6 +7,7 @@ import { NOTICE_URL } from "@/data/config";
 import { DataPortability } from "@/components/DataPortability";
 import { ScrollButtons } from "@/components/ScrollButtons";
 import { AboutBlankButton } from "@/components/AboutBlankButton";
+import { openInAboutBlank } from "@/utils/about-blank";
 import { useFavorites } from "@/hooks/use-favorites";
 import { toast } from "@/hooks/use-toast";
 
