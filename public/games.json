@@ -1,7 +1,7 @@
 [
   { "id": 1, "name": "GN-MATH", "image": "", "link": "g/f/gn-math/index.html", "genre": "Other" },
   { "id": 2, "name": "Old Site", "image": "", "link": "g/f/oldsite/index.html", "genre": "Other" },
-  { "id": 3, "name": "More Games", "image": "", "link": "g/f/codeorg.html", "genre": "Other" },
+  { "id": 3, "name": "More Games", "image": "", "link": "g/codeorg.html", "genre": "Other" },
   { "id": 4, "name": "Slope", "image": "", "link": "g/f/s/index.html", "genre": "Arcade" },
   { "id": 5, "name": "A Small World Cup", "image": "", "link": "g/asmallworldcup.html", "genre": "Sports" },
   { "id": 6, "name": "Five Nights at Big 'E", "image": "", "link": "g/fivenightsatepsteins.html", "genre": "Horror" },
