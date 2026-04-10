@@ -36,6 +36,7 @@ export function useSpoof() {
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(resolved));
     setSettings(resolved);
+    window.dispatchEvent(new Event("spoof-updated"));
   }, []);
 
   const reset = useCallback(() => {
