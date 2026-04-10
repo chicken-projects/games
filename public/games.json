@@ -1,5 +1,6 @@
 [
   { "id": 1, "name": "GN-MATH", "image": "", "link": "g/f/gn-math", "genre": "Other" },
+  { "id": 274, "name": "YouTube", "image": "", "link": "yt.html", "genre": "Other" },
   { "id": 2, "name": "Old Site", "image": "", "link": "g/f/oldsite", "genre": "Other" },
   { "id": 3, "name": "More Games", "image": "", "link": "g/f/codeorg.html", "genre": "Other" },
   { "id": 4, "name": "Slope", "image": "", "link": "g/f/s", "genre": "Arcade" },

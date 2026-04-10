@@ -7,9 +7,9 @@ import { NOTICE_URL } from "@/data/config";
 import { DataPortability } from "@/components/DataPortability";
 import { ScrollButtons } from "@/components/ScrollButtons";
 import { AboutBlankButton } from "@/components/AboutBlankButton";
+import { SpoofSettings } from "@/components/SpoofSettings";
 import { openInAboutBlank } from "@/utils/about-blank";
 import { useFavorites } from "@/hooks/use-favorites";
-import { toast } from "@/hooks/use-toast";
 
 const Index = () => {
   const { games, loading } = useGames();
@@ -17,7 +17,7 @@ const Index = () => {
   const [notice, setNotice] = useState("");
   const [showFavs, setShowFavs] = useState(false);
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
-  const { favorites, toggle, isFavorite, count, max } = useFavorites();
+  const { favorites, toggle, isFavorite, count } = useFavorites();
 
   const genres = useMemo(() => {
     const set = new Set<string>();
@@ -52,10 +52,6 @@ const Index = () => {
   const handleToggleFav = (e: React.MouseEvent, id: number) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!isFavorite(id) && count >= max) {
-      toast({ title: "Favorites full", description: `You can only favorite up to ${max} games.`, variant: "destructive" });
-      return;
-    }
     toggle(id);
   };
 
@@ -77,7 +73,7 @@ const Index = () => {
               }`}
             >
               <Heart className={`w-3.5 h-3.5 ${showFavs ? "fill-current" : ""}`} />
-              Favorites ({count}/{max})
+              Favorites ({count})
             </button>
             {genres.length > 0 && (
               <Popover>
@@ -130,6 +126,7 @@ const Index = () => {
             />
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
+            <SpoofSettings />
             <AboutBlankButton />
             <DataPortability />
             {notice && (
