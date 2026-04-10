@@ -1,7 +1,6 @@
 import { useState, useCallback } from "react";
 
 const STORAGE_KEY = "favoriteGameIds";
-const MAX_FAVORITES = 15;
 
 function loadFavorites(): number[] {
   try {
@@ -17,13 +16,9 @@ export function useFavorites() {
 
   const toggle = useCallback((id: number) => {
     setFavorites((prev) => {
-      let next: number[];
-      if (prev.includes(id)) {
-        next = prev.filter((f) => f !== id);
-      } else {
-        if (prev.length >= MAX_FAVORITES) return prev;
-        next = [...prev, id];
-      }
+      const next = prev.includes(id)
+        ? prev.filter((f) => f !== id)
+        : [...prev, id];
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
       return next;
     });
@@ -31,5 +26,5 @@ export function useFavorites() {
 
   const isFavorite = useCallback((id: number) => favorites.includes(id), [favorites]);
 
-  return { favorites, toggle, isFavorite, count: favorites.length, max: MAX_FAVORITES };
+  return { favorites, toggle, isFavorite, count: favorites.length };
 }
