@@ -10,6 +10,7 @@ import { AboutBlankButton } from "@/components/AboutBlankButton";
 import { SpoofSettings } from "@/components/SpoofSettings";
 import { openInAboutBlank } from "@/utils/about-blank";
 import { useFavorites } from "@/hooks/use-favorites";
+import { getSpoofSettings } from "@/hooks/use-spoof";
 
 const Index = () => {
   const { games, loading } = useGames();
@@ -18,6 +19,35 @@ const Index = () => {
   const [showFavs, setShowFavs] = useState(false);
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const { favorites, toggle, isFavorite, count } = useFavorites();
+
+  // Apply spoof title & favicon to current tab
+  useEffect(() => {
+    const { title, faviconUrl } = getSpoofSettings();
+    document.title = title;
+    let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null;
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "icon";
+      document.head.appendChild(link);
+    }
+    link.href = faviconUrl;
+  }, []);
+
+  // Listen for spoof setting changes
+  useEffect(() => {
+    const handler = () => {
+      const { title, faviconUrl } = getSpoofSettings();
+      document.title = title;
+      const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null;
+      if (link) link.href = faviconUrl;
+    };
+    window.addEventListener("storage", handler);
+    window.addEventListener("spoof-updated", handler);
+    return () => {
+      window.removeEventListener("storage", handler);
+      window.removeEventListener("spoof-updated", handler);
+    };
+  }, []);
 
   const genres = useMemo(() => {
     const set = new Set<string>();
