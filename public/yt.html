@@ -7,25 +7,36 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0a0a0a; color: #e5e5e5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; min-height: 100vh; }
-    .container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
-    h1 { font-size: 20px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
-    h1 svg { width: 28px; height: 28px; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 24px 16px; }
+    h1 { font-size: 22px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+    h1 svg { width: 30px; height: 30px; }
     .input-group { margin-bottom: 16px; }
     .input-group label { display: block; font-size: 13px; color: #a1a1aa; margin-bottom: 6px; }
     .input-row { display: flex; gap: 8px; }
-    input { flex: 1; padding: 10px 14px; border-radius: 8px; border: 1px solid #27272a; background: #18181b; color: #e5e5e5; font-size: 14px; outline: none; }
+    input { flex: 1; padding: 11px 14px; border-radius: 8px; border: 1px solid #27272a; background: #18181b; color: #e5e5e5; font-size: 14px; outline: none; }
     input:focus { border-color: #3b82f6; }
-    button { padding: 10px 20px; border-radius: 8px; border: none; background: #3b82f6; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    button { padding: 11px 22px; border-radius: 8px; border: none; background: #3b82f6; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background .15s; }
     button:hover { background: #2563eb; }
-    .player-wrap { position: relative; width: 100%; padding-top: 56.25%; background: #000; border-radius: 12px; overflow: hidden; margin-top: 20px; }
+    .player-wrap { position: relative; width: 100%; padding-top: 56.25%; background: #000; border-radius: 12px; overflow: hidden; margin-top: 16px; }
     .player-wrap iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
     .player-wrap.empty { display: flex; align-items: center; justify-content: center; }
-    .player-wrap.empty::after { content: 'Paste a YouTube link or search above'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: #52525b; font-size: 14px; }
-    .search-results { margin-top: 16px; }
-    .search-results iframe { width: 100%; height: 500px; border: none; border-radius: 12px; background: #000; }
+    .player-wrap.empty::after { content: 'Pick a video to play'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: #52525b; font-size: 14px; }
     .tabs { display: flex; gap: 4px; margin-bottom: 16px; }
     .tab { padding: 8px 16px; border-radius: 8px; border: 1px solid #27272a; background: transparent; color: #a1a1aa; font-size: 13px; font-weight: 500; cursor: pointer; }
     .tab.active { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin-top: 16px; }
+    .card { background: #18181b; border: 1px solid #27272a; border-radius: 10px; overflow: hidden; cursor: pointer; transition: transform .15s, border-color .15s; }
+    .card:hover { transform: translateY(-2px); border-color: #3b82f6; }
+    .thumb { position: relative; width: 100%; padding-top: 56.25%; background: #000; }
+    .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .duration { position: absolute; bottom: 6px; right: 6px; background: rgba(0,0,0,0.85); color: #fff; font-size: 11px; padding: 2px 5px; border-radius: 3px; font-weight: 600; }
+    .meta { padding: 10px 12px; }
+    .title { font-size: 13px; font-weight: 600; line-height: 1.3; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .uploader { font-size: 12px; color: #a1a1aa; }
+    .status { text-align: center; padding: 30px; color: #71717a; font-size: 14px; }
+    .back { margin-bottom: 12px; padding: 8px 14px; background: #27272a; }
+    .back:hover { background: #3f3f46; }
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
@@ -35,77 +46,141 @@
       YouTube
     </h1>
 
-    <div class="tabs">
-      <button class="tab active" onclick="switchTab('link')">Paste Link</button>
-      <button class="tab" onclick="switchTab('search')">Search</button>
+    <div id="playerView" class="hidden">
+      <button class="back" onclick="closePlayer()">← Back</button>
+      <div id="player" class="player-wrap"></div>
+      <h2 id="playerTitle" style="margin-top:14px;font-size:16px;font-weight:600;"></h2>
+      <p id="playerUploader" style="margin-top:4px;color:#a1a1aa;font-size:13px;"></p>
     </div>
 
-    <div id="linkTab">
-      <div class="input-group">
-        <label>Paste a YouTube URL</label>
-        <div class="input-row">
-          <input id="urlInput" type="text" placeholder="https://www.youtube.com/watch?v=..." oninput="tryAutoEmbed()">
-          <button onclick="embedFromUrl()">Embed</button>
-        </div>
+    <div id="browseView">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('search')">Search</button>
+        <button class="tab" onclick="switchTab('link')">Paste Link</button>
       </div>
-      <div id="player" class="player-wrap empty"></div>
-    </div>
 
-    <div id="searchTab" style="display:none">
-      <div class="input-group">
-        <label>Search YouTube</label>
-        <div class="input-row">
-          <input id="searchInput" type="text" placeholder="Search videos..." onkeydown="if(event.key==='Enter')doSearch()">
-          <button onclick="doSearch()">Search</button>
+      <div id="searchTab">
+        <div class="input-group">
+          <div class="input-row">
+            <input id="searchInput" type="text" placeholder="Search YouTube..." onkeydown="if(event.key==='Enter')doSearch()">
+            <button onclick="doSearch()">Search</button>
+          </div>
+        </div>
+        <div id="searchResults"></div>
+      </div>
+
+      <div id="linkTab" style="display:none">
+        <div class="input-group">
+          <label>Paste a YouTube URL</label>
+          <div class="input-row">
+            <input id="urlInput" type="text" placeholder="https://www.youtube.com/watch?v=...">
+            <button onclick="embedFromUrl()">Play</button>
+          </div>
         </div>
       </div>
-      <div id="searchResults" class="search-results"></div>
     </div>
   </div>
 
   <script>
+    // Piped public instances (fallbacks)
+    const PIPED_INSTANCES = [
+      'https://pipedapi.kavin.rocks',
+      'https://pipedapi.adminforge.de',
+      'https://pipedapi.reallyaweso.me',
+      'https://api.piped.privacydev.net',
+    ];
+
     function switchTab(tab) {
-      document.getElementById('linkTab').style.display = tab === 'link' ? '' : 'none';
       document.getElementById('searchTab').style.display = tab === 'search' ? '' : 'none';
+      document.getElementById('linkTab').style.display = tab === 'link' ? '' : 'none';
       document.querySelectorAll('.tab').forEach((t, i) => {
-        t.classList.toggle('active', (i === 0 && tab === 'link') || (i === 1 && tab === 'search'));
+        t.classList.toggle('active', (i === 0 && tab === 'search') || (i === 1 && tab === 'link'));
       });
     }
 
     function extractVideoId(url) {
       if (!url) return null;
-      let m = url.match(/(?:youtube\.com\/watch\?.*v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/);
-      return m ? m[1] : null;
+      const m = url.match(/(?:youtube\.com\/watch\?.*v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/);
+      if (m) return m[1];
+      if (/^[a-zA-Z0-9_-]{11}$/.test(url.trim())) return url.trim();
+      return null;
     }
 
-    function embedVideo(videoId) {
+    function openPlayer(videoId, title, uploader) {
+      document.getElementById('browseView').classList.add('hidden');
+      document.getElementById('playerView').classList.remove('hidden');
       const player = document.getElementById('player');
-      player.classList.remove('empty');
       player.innerHTML = '<iframe src="https://www.youtube.com/embed/' + videoId + '?autoplay=1" allowfullscreen allow="autoplay; encrypted-media"></iframe>';
+      document.getElementById('playerTitle').textContent = title || '';
+      document.getElementById('playerUploader').textContent = uploader || '';
+      window.scrollTo(0, 0);
+    }
+
+    function closePlayer() {
+      document.getElementById('player').innerHTML = '';
+      document.getElementById('playerView').classList.add('hidden');
+      document.getElementById('browseView').classList.remove('hidden');
     }
 
     function embedFromUrl() {
       const url = document.getElementById('urlInput').value.trim();
       const id = extractVideoId(url);
-      if (id) embedVideo(id);
+      if (id) openPlayer(id, '', '');
     }
 
-    function tryAutoEmbed() {
-      const url = document.getElementById('urlInput').value.trim();
-      const id = extractVideoId(url);
-      if (id) embedVideo(id);
+    function fmtDuration(s) {
+      if (!s || s < 0) return '';
+      const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+      if (h) return h + ':' + String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+      return m + ':' + String(sec).padStart(2, '0');
     }
 
-    function doSearch() {
+    async function pipedFetch(path) {
+      let lastErr;
+      for (const base of PIPED_INSTANCES) {
+        try {
+          const ctrl = new AbortController();
+          const t = setTimeout(() => ctrl.abort(), 6000);
+          const r = await fetch(base + path, { signal: ctrl.signal });
+          clearTimeout(t);
+          if (r.ok) return await r.json();
+        } catch (e) { lastErr = e; }
+      }
+      throw lastErr || new Error('All instances failed');
+    }
+
+    async function doSearch() {
       const q = document.getElementById('searchInput').value.trim();
       if (!q) return;
       const container = document.getElementById('searchResults');
-      container.innerHTML = '<iframe src="https://www.youtube.com/results?search_query=' + encodeURIComponent(q) + '"></iframe>';
-    }
-
-    // Handle opening in about:blank if available
-    if (window.parent && window.parent.__openInAboutBlank) {
-      // We're inside about:blank, game links should use the parent's function
+      container.innerHTML = '<div class="status">Searching...</div>';
+      try {
+        const data = await pipedFetch('/search?q=' + encodeURIComponent(q) + '&filter=videos');
+        const items = (data.items || []).filter(i => i.type === 'stream' || i.url);
+        if (!items.length) { container.innerHTML = '<div class="status">No results found.</div>'; return; }
+        const grid = document.createElement('div');
+        grid.className = 'grid';
+        for (const it of items) {
+          const id = (it.url || '').split('v=')[1] || '';
+          if (!id) continue;
+          const thumb = it.thumbnail || ('https://i.ytimg.com/vi/' + id + '/hqdefault.jpg');
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML =
+            '<div class="thumb"><img loading="lazy" src="' + thumb + '" alt="">' +
+            (it.duration > 0 ? '<span class="duration">' + fmtDuration(it.duration) + '</span>' : '') +
+            '</div>' +
+            '<div class="meta"><div class="title"></div><div class="uploader"></div></div>';
+          card.querySelector('.title').textContent = it.title || '';
+          card.querySelector('.uploader').textContent = it.uploaderName || '';
+          card.onclick = () => openPlayer(id, it.title || '', it.uploaderName || '');
+          grid.appendChild(card);
+        }
+        container.innerHTML = '';
+        container.appendChild(grid);
+      } catch (e) {
+        container.innerHTML = '<div class="status">Search failed. Try again or paste a link directly.</div>';
+      }
     }
   </script>
 </body>
