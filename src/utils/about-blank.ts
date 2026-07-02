@@ -1,29 +1,46 @@
-import { getSpoofSettings } from "@/hooks/use-spoof";
+import { getSpoofSettings, resolveFaviconUrl } from "@/hooks/use-spoof";
 
-export function openInAboutBlank(url: string) {
-  const { title, faviconUrl } = getSpoofSettings();
-  const win = window.open("about:blank", "_blank");
-  if (!win) return;
-
-  win.document.open();
-  win.document.write(`
-<!DOCTYPE html>
+function buildWrapper(url: string, title: string, favicon: string) {
+  return `<!DOCTYPE html>
 <html>
 <head>
   <title>${title}</title>
-  <link rel="icon" href="${faviconUrl}">
-  <style>* { margin:0; padding:0; } html,body { height:100%; overflow:hidden; } iframe { width:100vw; height:100vh; border:none; }</style>
+  <link rel="icon" href="${favicon}">
+  <style>*{margin:0;padding:0}html,body{height:100%;overflow:hidden;background:#000}iframe{width:100vw;height:100vh;border:none;display:block}</style>
 </head>
 <body>
   <iframe src="${url}" allowfullscreen sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-downloads allow-popups-to-escape-sandbox"></iframe>
 </body>
-</html>
-  `);
+</html>`;
+}
+
+/** Open a game link honoring the spoof + open-behavior settings. */
+export function openGame(url: string) {
+  const { title, faviconUrl, openBehavior } = getSpoofSettings();
+  const favicon = resolveFaviconUrl(faviconUrl);
+  const html = buildWrapper(url, title, favicon);
+
+  if (openBehavior === "same-tab") {
+    // Replace the current document with the spoofed wrapper
+    document.open();
+    document.write(html);
+    document.close();
+    return;
+  }
+
+  const win = window.open("about:blank", "_blank");
+  if (!win) return;
+  win.document.open();
+  win.document.write(html);
   win.document.close();
 }
 
+// Back-compat alias
+export const openInAboutBlank = openGame;
+
 export function openCurrentPageInBlank() {
   const { title, faviconUrl } = getSpoofSettings();
+  const favicon = resolveFaviconUrl(faviconUrl);
   const origin = window.location.origin;
   const url = window.location.href;
 
@@ -35,27 +52,7 @@ export function openCurrentPageInBlank() {
         .replace(/(href|src|action)='\/(?!\/)/g, `$1='${origin}/`);
       patched = patched.replace(/<head([^>]*)>/i, `<head$1><base href="${origin}/">`);
       patched = patched.replace(/<title>[^<]*<\/title>/i, `<title>${title}</title>`);
-      patched = patched.replace(/<head([^>]*)>/i, `<head$1><link rel="icon" href="${faviconUrl}">`);
-
-      // Inject script to intercept game clicks so they also open in about:blank
-      const interceptScript = `
-<script>
-  window.__SPOOF_TITLE__ = ${JSON.stringify(title)};
-  window.__SPOOF_FAVICON__ = ${JSON.stringify(faviconUrl)};
-  window.__openInAboutBlank = function(url) {
-    var w = window.open("about:blank", "_blank");
-    if (!w) return;
-    w.document.open();
-    w.document.write(
-      '<!DOCTYPE html><html><head><title>' + window.__SPOOF_TITLE__ + '</title>' +
-      '<link rel="icon" href="' + window.__SPOOF_FAVICON__ + '">' +
-      '<style>*{margin:0;padding:0}html,body{height:100%;overflow:hidden}iframe{width:100vw;height:100vh;border:none}</style>' +
-      '</head><body><iframe src="' + url + '" allowfullscreen sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-downloads allow-popups-to-escape-sandbox"></iframe></body></html>'
-    );
-    w.document.close();
-  };
-</script>`;
-      patched = patched.replace(/<\/body>/i, interceptScript + "</body>");
+      patched = patched.replace(/<head([^>]*)>/i, `<head$1><link rel="icon" href="${favicon}">`);
 
       const win = window.open("about:blank", "_blank");
       if (!win) return;

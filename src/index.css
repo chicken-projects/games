@@ -30,9 +30,7 @@
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
+  * { @apply border-border; }
   body {
     @apply bg-background text-foreground font-sans;
     font-family: 'Inter', sans-serif;
@@ -40,37 +38,70 @@
 }
 
 .game-slot-empty {
-  @apply border-2 border-dashed border-border rounded-lg flex items-center justify-center cursor-pointer transition-all duration-200;
+  @apply border-2 border-dashed border-border rounded-lg flex items-center justify-center cursor-pointer transition-all duration-300;
 }
-.game-slot-empty:hover {
-  @apply border-primary/50 bg-muted/50;
-}
+.game-slot-empty:hover { @apply border-primary/50 bg-muted/50; }
+
 .game-slot-filled {
-  @apply border border-border rounded-lg overflow-hidden cursor-pointer transition-all duration-200;
+  @apply border border-border rounded-lg overflow-hidden cursor-pointer transition-all duration-300 ease-out bg-card;
 }
 .game-slot-filled:hover {
-  @apply border-primary shadow-lg shadow-primary/10 scale-[1.02];
+  @apply border-primary shadow-lg shadow-primary/20 -translate-y-0.5;
 }
 
 @keyframes shimmer {
   0% { background-position: 100% center; }
   100% { background-position: -100% center; }
 }
-
 .shimmer-text {
-  background: linear-gradient(
-    90deg,
+  background: linear-gradient(90deg,
     hsl(var(--muted-foreground)) 0%,
     hsl(var(--muted-foreground)) 40%,
     hsl(var(--foreground) / 0.6) 48%,
     hsl(var(--foreground)) 50%,
     hsl(var(--foreground) / 0.6) 52%,
     hsl(var(--muted-foreground)) 60%,
-    hsl(var(--muted-foreground)) 100%
-  );
+    hsl(var(--muted-foreground)) 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   animation: shimmer 8s linear infinite;
 }
+
+/* Bubble-in for filtered/searched cards */
+@keyframes bubble-in {
+  0% { opacity: 0; transform: scale(0.55) translateY(10px); filter: blur(6px); }
+  60% { opacity: 1; filter: blur(0); }
+  100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+}
+.animate-bubble-in { animation: bubble-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* Sweep shimmer overlay */
+@keyframes sweep {
+  0% { transform: translateX(-120%) skewX(-20deg); }
+  100% { transform: translateX(220%) skewX(-20deg); }
+}
+.card-sheen { position: relative; overflow: hidden; }
+.card-sheen::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent 0%, hsl(var(--foreground) / 0.10) 45%, hsl(var(--foreground) / 0.22) 50%, hsl(var(--foreground) / 0.10) 55%, transparent 100%);
+  transform: translateX(-120%) skewX(-20deg);
+  animation: sweep 1.1s ease-out forwards;
+  pointer-events: none;
+}
+
+.settings-shimmer { position: relative; }
+.settings-shimmer::before {
+  content: "";
+  position: absolute; inset: 0; border-radius: inherit;
+  background: linear-gradient(90deg, transparent, hsl(var(--foreground) / 0.10), transparent);
+  transform: translateX(-100%);
+  animation: sweep 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  pointer-events: none;
+}
+
+/* Notice inline links */
+.notice-link { color: hsl(200 90% 65%); text-decoration: underline; text-underline-offset: 2px; transition: color .2s; }
+.notice-link:hover { color: hsl(200 95% 78%); }
