@@ -19,8 +19,6 @@
     button:hover { background: #2563eb; }
     .player-wrap { position: relative; width: 100%; padding-top: 56.25%; background: #000; border-radius: 12px; overflow: hidden; margin-top: 16px; }
     .player-wrap iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
-    .player-wrap.empty { display: flex; align-items: center; justify-content: center; }
-    .player-wrap.empty::after { content: 'Pick a video to play'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: #52525b; font-size: 14px; }
     .tabs { display: flex; gap: 4px; margin-bottom: 16px; }
     .tab { padding: 8px 16px; border-radius: 8px; border: 1px solid #27272a; background: transparent; color: #a1a1aa; font-size: 13px; font-weight: 500; cursor: pointer; }
     .tab.active { background: #3b82f6; color: #fff; border-color: #3b82f6; }
@@ -34,6 +32,8 @@
     .title { font-size: 13px; font-weight: 600; line-height: 1.3; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .uploader { font-size: 12px; color: #a1a1aa; }
     .status { text-align: center; padding: 30px; color: #71717a; font-size: 14px; }
+    .status .hint { display: block; margin-top: 8px; font-size: 12px; color: #52525b; }
+    .status button { margin-top: 14px; }
     .back { margin-bottom: 12px; padding: 8px 14px; background: #27272a; }
     .back:hover { background: #3f3f46; }
     .hidden { display: none !important; }
@@ -82,12 +82,23 @@
   </div>
 
   <script>
-    // Piped public instances (fallbacks)
-    const PIPED_INSTANCES = [
+    const CACHE_KEY = 'yt_instances_v1';
+    const CACHE_TTL = 6 * 60 * 60 * 1000; // 6h
+
+    const FALLBACK_PIPED = [
       'https://pipedapi.kavin.rocks',
       'https://pipedapi.adminforge.de',
       'https://pipedapi.reallyaweso.me',
       'https://api.piped.privacydev.net',
+      'https://pipedapi.drgns.space',
+      'https://pipedapi.leptons.xyz',
+    ];
+    const FALLBACK_INVIDIOUS = [
+      'https://invidious.jing.rocks',
+      'https://invidious.nerdvpn.de',
+      'https://inv.nadeko.net',
+      'https://invidious.privatedns.org',
+      'https://yewtu.be',
     ];
 
     function switchTab(tab) {
@@ -130,23 +141,119 @@
 
     function fmtDuration(s) {
       if (!s || s < 0) return '';
+      s = Math.floor(s);
       const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
       if (h) return h + ':' + String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
       return m + ':' + String(sec).padStart(2, '0');
     }
 
-    async function pipedFetch(path) {
-      let lastErr;
-      for (const base of PIPED_INSTANCES) {
-        try {
-          const ctrl = new AbortController();
-          const t = setTimeout(() => ctrl.abort(), 6000);
-          const r = await fetch(base + path, { signal: ctrl.signal });
-          clearTimeout(t);
-          if (r.ok) return await r.json();
-        } catch (e) { lastErr = e; }
+    async function loadInstances() {
+      try {
+        const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+        if (cached && Date.now() - cached.t < CACHE_TTL && cached.piped?.length) {
+          return { piped: cached.piped, invidious: cached.invidious || FALLBACK_INVIDIOUS };
+        }
+      } catch {}
+
+      let piped = FALLBACK_PIPED, invidious = FALLBACK_INVIDIOUS;
+      try {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 5000);
+        const r = await fetch('https://piped-instances.kavin.rocks/', { signal: ctrl.signal });
+        clearTimeout(t);
+        if (r.ok) {
+          const list = await r.json();
+          const healthy = list.filter(i => i.api_url && i.up !== false).map(i => i.api_url);
+          if (healthy.length) piped = healthy.slice(0, 10);
+        }
+      } catch {}
+
+      try {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 5000);
+        const r = await fetch('https://api.invidious.io/instances.json?sort_by=health', { signal: ctrl.signal });
+        clearTimeout(t);
+        if (r.ok) {
+          const list = await r.json();
+          const healthy = list
+            .filter(([_, info]) => info.api === true && info.type === 'https')
+            .map(([_, info]) => info.uri);
+          if (healthy.length) invidious = healthy.slice(0, 8);
+        }
+      } catch {}
+
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ t: Date.now(), piped, invidious })); } catch {}
+      return { piped, invidious };
+    }
+
+    function raceFetch(urls, parse, timeoutMs = 7000) {
+      const controllers = urls.map(() => new AbortController());
+      const promises = urls.map((url, i) =>
+        (async () => {
+          const to = setTimeout(() => controllers[i].abort(), timeoutMs);
+          try {
+            const r = await fetch(url, { signal: controllers[i].signal });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            const data = await r.json();
+            const items = parse(data);
+            if (!items || !items.length) throw new Error('empty');
+            return items;
+          } finally {
+            clearTimeout(to);
+          }
+        })()
+      );
+      return Promise.any(promises).finally(() => {
+        controllers.forEach(c => { try { c.abort(); } catch {} });
+      });
+    }
+
+    function normalizePiped(data) {
+      const items = (data.items || []).filter(i => i.type === 'stream' || i.url);
+      return items.map(it => {
+        const id = (it.url || '').split('v=')[1] || '';
+        if (!id) return null;
+        return {
+          id,
+          title: it.title || '',
+          uploader: it.uploaderName || '',
+          duration: it.duration || 0,
+          thumb: it.thumbnail || ('https://i.ytimg.com/vi/' + id + '/hqdefault.jpg'),
+        };
+      }).filter(Boolean);
+    }
+
+    function normalizeInvidious(data) {
+      const arr = Array.isArray(data) ? data : (data.items || []);
+      return arr.filter(i => i.type === 'video' || i.videoId).map(it => ({
+        id: it.videoId,
+        title: it.title || '',
+        uploader: it.author || '',
+        duration: it.lengthSeconds || 0,
+        thumb: (it.videoThumbnails && it.videoThumbnails[0]?.url) || ('https://i.ytimg.com/vi/' + it.videoId + '/hqdefault.jpg'),
+      })).filter(x => x.id);
+    }
+
+    function renderResults(items) {
+      const container = document.getElementById('searchResults');
+      if (!items.length) { container.innerHTML = '<div class="status">No results found.</div>'; return; }
+      const grid = document.createElement('div');
+      grid.className = 'grid';
+      for (const it of items) {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML =
+          '<div class="thumb"><img loading="lazy" src="' + it.thumb + '" alt="">' +
+          (it.duration > 0 ? '<span class="duration">' + fmtDuration(it.duration) + '</span>' : '') +
+          '</div>' +
+          '<div class="meta"><div class="title"></div><div class="uploader"></div></div>';
+        card.querySelector('.title').textContent = it.title;
+        card.querySelector('.uploader').textContent = it.uploader;
+        card.onclick = () => openPlayer(it.id, it.title, it.uploader);
+        grid.appendChild(card);
       }
-      throw lastErr || new Error('All instances failed');
+      container.innerHTML = '';
+      container.appendChild(grid);
     }
 
     async function doSearch() {
@@ -154,34 +261,36 @@
       if (!q) return;
       const container = document.getElementById('searchResults');
       container.innerHTML = '<div class="status">Searching...</div>';
+
+      const { piped, invidious } = await loadInstances();
+      const triedBackends = [];
+
+      // Try Piped (race top 5)
       try {
-        const data = await pipedFetch('/search?q=' + encodeURIComponent(q) + '&filter=videos');
-        const items = (data.items || []).filter(i => i.type === 'stream' || i.url);
-        if (!items.length) { container.innerHTML = '<div class="status">No results found.</div>'; return; }
-        const grid = document.createElement('div');
-        grid.className = 'grid';
-        for (const it of items) {
-          const id = (it.url || '').split('v=')[1] || '';
-          if (!id) continue;
-          const thumb = it.thumbnail || ('https://i.ytimg.com/vi/' + id + '/hqdefault.jpg');
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.innerHTML =
-            '<div class="thumb"><img loading="lazy" src="' + thumb + '" alt="">' +
-            (it.duration > 0 ? '<span class="duration">' + fmtDuration(it.duration) + '</span>' : '') +
-            '</div>' +
-            '<div class="meta"><div class="title"></div><div class="uploader"></div></div>';
-          card.querySelector('.title').textContent = it.title || '';
-          card.querySelector('.uploader').textContent = it.uploaderName || '';
-          card.onclick = () => openPlayer(id, it.title || '', it.uploaderName || '');
-          grid.appendChild(card);
-        }
-        container.innerHTML = '';
-        container.appendChild(grid);
-      } catch (e) {
-        container.innerHTML = '<div class="status">Search failed. Try again or paste a link directly.</div>';
-      }
+        triedBackends.push('Piped');
+        const urls = piped.slice(0, 5).map(b => b + '/search?q=' + encodeURIComponent(q) + '&filter=videos');
+        const items = await raceFetch(urls, normalizePiped);
+        renderResults(items);
+        return;
+      } catch {}
+
+      // Fall back to Invidious (race top 5)
+      try {
+        triedBackends.push('Invidious');
+        const urls = invidious.slice(0, 5).map(b => b + '/api/v1/search?q=' + encodeURIComponent(q) + '&type=video');
+        const items = await raceFetch(urls, normalizeInvidious);
+        renderResults(items);
+        return;
+      } catch {}
+
+      container.innerHTML =
+        '<div class="status">Search backends are unreachable right now.' +
+        '<span class="hint">Tried: ' + triedBackends.join(', ') + '. Try again in a moment, or use the <b>Paste Link</b> tab to play any YouTube URL directly.</span>' +
+        '<br><button onclick="doSearch()">Retry</button></div>';
     }
+
+    // Warm up instance cache in the background
+    loadInstances();
   </script>
 </body>
 </html>
