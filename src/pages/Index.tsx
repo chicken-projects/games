@@ -1,16 +1,18 @@
-import { useState, useMemo, useEffect } from "react";
-import { Search, Gamepad2, ExternalLink, Gamepad, Heart, Filter, Check } from "lucide-react";
+import { useState, useMemo, useEffect, useRef, MouseEvent } from "react";
+import { Search, Gamepad, Heart, Filter, Check, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useGames } from "@/data/games";
+import { useGamesData } from "@/data/games";
 import { NOTICE_URL } from "@/data/config";
 import { ScrollButtons } from "@/components/ScrollButtons";
 import { SettingsMenu } from "@/components/SettingsMenu";
+import { DisguiseButton } from "@/components/DisguiseButton";
+import { GameGrid } from "@/components/GameGrid";
+import { StarLayer, useStarShimmer } from "@/components/StarShimmer";
 import { openGame } from "@/utils/about-blank";
 import { useFavorites } from "@/hooks/use-favorites";
 import { getSpoofSettings, resolveFaviconUrl } from "@/hooks/use-spoof";
 
-/** Render a plain-text notice, converting URLs into blue clickable links. */
 function renderNotice(text: string) {
   const parts = text.split(/(https?:\/\/[^\s]+)/g);
   return parts.map((p, i) =>
@@ -23,12 +25,20 @@ function renderNotice(text: string) {
 }
 
 const Index = () => {
-  const { games, loading } = useGames();
+  const { data, loading } = useGamesData();
   const [search, setSearch] = useState("");
   const [notice, setNotice] = useState("");
   const [showFavs, setShowFavs] = useState(false);
-  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  const [selectedGenres, setSelectedGenres] = useState<number[]>([]);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [searchOrigin, setSearchOrigin] = useState("right");
   const { toggle, isFavorite, count, favorites } = useFavorites();
+  const { bursts: searchBursts, emit: emitSearch } = useStarShimmer();
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchPanelRef = useRef<HTMLDivElement>(null);
+
+  const menuOpen = searchOpen || settingsOpen;
 
   // Apply spoof title & favicon
   useEffect(() => {
@@ -53,10 +63,9 @@ const Index = () => {
   }, []);
 
   const genres = useMemo(() => {
-    const set = new Set<string>();
-    games.forEach((g) => { if (g.genre) set.add(g.genre); });
-    return Array.from(set).sort();
-  }, [games]);
+    if (data.genres.length) return data.genres.slice().sort((a, b) => b.priority - a.priority);
+    return [];
+  }, [data.genres]);
 
   useEffect(() => {
     fetch(NOTICE_URL, { cache: "no-store" })
@@ -65,45 +74,73 @@ const Index = () => {
       .catch(() => setNotice(""));
   }, []);
 
+  useEffect(() => {
+    if (searchOpen) setTimeout(() => searchInputRef.current?.focus(), 250);
+  }, [searchOpen]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { setSearchOpen(false); setSettingsOpen(false); } };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
+
   const filtered = useMemo(() => {
-    let list = games;
+    let list = data.games;
     if (showFavs) list = list.filter((g) => favorites.includes(g.id));
-    if (selectedGenres.length > 0) list = list.filter((g) => g.genre && selectedGenres.includes(g.genre));
+    if (selectedGenres.length > 0) list = list.filter((g) => typeof g.genre === "number" && selectedGenres.includes(g.genre));
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter((g) => g.name.toLowerCase().includes(q));
     }
     return list;
-  }, [search, showFavs, favorites, selectedGenres, games]);
+  }, [search, showFavs, favorites, selectedGenres, data.games]);
 
-  // Key that changes when filters change — retriggers bubble/shimmer animation
-  const filterKey = `${search}|${showFavs}|${selectedGenres.join(",")}`;
+  // If filtering/search active, flatten (ignore group mode)
   const filtersActive = search.trim().length > 0 || showFavs || selectedGenres.length > 0;
+  const gridData = filtersActive ? { ...data, mode: "off" as const } : data;
 
-  const toggleGenre = (genre: string) =>
-    setSelectedGenres((prev) => prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre]);
+  const toggleGenre = (id: number) =>
+    setSelectedGenres((prev) => prev.includes(id) ? prev.filter((g) => g !== id) : [...prev, id]);
 
   const handleToggleFav = (e: React.MouseEvent, id: number) => {
     e.preventDefault(); e.stopPropagation(); toggle(id);
   };
 
+  const openSearch = (e: MouseEvent) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    setSearchOrigin(`${rect.left + rect.width / 2}px`);
+    setSettingsOpen(false);
+    setSearchOpen(true);
+  };
+  const openSettings = (e: MouseEvent) => {
+    setSearchOpen(false);
+    setSettingsOpen(true);
+    // origin handled inside SettingsMenu
+    void e;
+  };
+
+  // Emit stars on panel clicks
+  const handleSearchPanelClick = (e: React.MouseEvent) => {
+    const rect = searchPanelRef.current?.getBoundingClientRect();
+    if (rect) emitSearch(e.clientX - rect.left, e.clientY - rect.top);
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-10 bg-background/70 backdrop-blur-xl border-b border-border">
-        <div className="relative max-w-7xl mx-auto px-4 py-4 flex items-center gap-3">
-          <div className="flex items-center gap-2 shrink-0">
+      <header className="sticky top-0 z-20 bg-background/70 backdrop-blur-xl border-b border-border">
+        <div className="relative max-w-7xl mx-auto px-4 py-3 flex items-center gap-2 h-[62px]">
+          {/* Always-visible Games logo */}
+          <div className="flex items-center gap-2 shrink-0 z-30">
             <Gamepad className="w-6 h-6 text-primary" />
             <h1 className="text-xl font-bold text-foreground">Games</h1>
           </div>
 
-          <div className="flex items-center gap-1.5 shrink-0">
+          {/* Pills (hidden while a menu is open) */}
+          <div className={`flex items-center gap-1.5 flex-1 transition-opacity duration-200 ${menuOpen ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
             <button
               onClick={() => setShowFavs(!showFavs)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all hover:scale-105 ${
-                showFavs
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-secondary text-secondary-foreground border-border hover:border-primary/50"
-              }`}
+              className={`header-pill ${showFavs ? "active" : ""}`}
             >
               <Heart className={`w-3.5 h-3.5 ${showFavs ? "fill-current" : ""}`} />
               Favorites ({count})
@@ -111,30 +148,24 @@ const Index = () => {
             {genres.length > 0 && (
               <Popover>
                 <PopoverTrigger asChild>
-                  <button
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all hover:scale-105 ${
-                      selectedGenres.length > 0
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-secondary text-secondary-foreground border-border hover:border-primary/50"
-                    }`}
-                  >
+                  <button className={`header-pill ${selectedGenres.length > 0 ? "active" : ""}`}>
                     <Filter className="w-3.5 h-3.5" />
                     {selectedGenres.length > 0 ? `Genres (${selectedGenres.length})` : "Genres"}
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-44 p-1.5" align="start">
+                <PopoverContent className="w-48 p-1.5 max-h-80 overflow-auto" align="start">
                   {genres.map((g) => (
                     <button
-                      key={g}
-                      onClick={() => toggleGenre(g)}
+                      key={g.id}
+                      onClick={() => toggleGenre(g.id)}
                       className="flex items-center gap-2 w-full px-2.5 py-1.5 text-sm rounded-md hover:bg-accent hover:text-accent-foreground transition-colors text-foreground"
                     >
                       <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${
-                        selectedGenres.includes(g) ? "bg-primary border-primary" : "border-border"
+                        selectedGenres.includes(g.id) ? "bg-primary border-primary" : "border-border"
                       }`}>
-                        {selectedGenres.includes(g) && <Check className="w-3 h-3 text-primary-foreground" />}
+                        {selectedGenres.includes(g.id) && <Check className="w-3 h-3 text-primary-foreground" />}
                       </div>
-                      {g}
+                      {g.name}
                     </button>
                   ))}
                   {selectedGenres.length > 0 && (
@@ -148,75 +179,82 @@ const Index = () => {
                 </PopoverContent>
               </Popover>
             )}
-          </div>
 
-          <div className="relative flex-1 max-w-lg mx-auto">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search games..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 bg-secondary border-border rounded-full transition-all focus-visible:ring-primary/40"
-            />
-          </div>
-
-          <div className="flex items-center gap-1.5 shrink-0 ml-auto">
             {notice && (
-              <div className="px-3 py-1.5 bg-secondary text-secondary-foreground text-xs font-medium rounded-full border border-border truncate max-w-xs">
+              <div className="header-pill max-w-xs truncate cursor-default hover:scale-100">
                 {renderNotice(notice)}
               </div>
             )}
-            <SettingsMenu />
+
+            <div className="flex-1" />
+
+            <button onClick={openSearch} className="header-pill" title="Search">
+              <Search className="w-3.5 h-3.5" /> Search
+            </button>
+            <DisguiseButton />
+            <SettingsMenu open={false} onOpen={openSettings} onClose={() => setSettingsOpen(false)} />
           </div>
+
+          {/* Expanding menu container — sits to the right of Games logo */}
+          {menuOpen && (
+            <div className="absolute inset-y-2 left-[130px] right-4 z-30">
+              {searchOpen && (
+                <div
+                  ref={searchPanelRef}
+                  onClick={handleSearchPanelClick}
+                  className="relative h-full w-full bubble-expand overflow-hidden rounded-full border border-border bg-secondary/95 backdrop-blur-md shadow-xl px-4 flex items-center gap-3"
+                  style={{ ["--origin-x" as string]: searchOrigin }}
+                >
+                  <StarLayer bursts={searchBursts} />
+                  <Search className="w-4 h-4 text-primary shrink-0" />
+                  <Input
+                    ref={searchInputRef}
+                    placeholder="Search games..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="flex-1 h-8 bg-transparent border-none rounded-full focus-visible:ring-0 focus-visible:ring-offset-0 text-sm"
+                  />
+                  {search && (
+                    <button onClick={() => setSearch("")} className="text-xs text-muted-foreground hover:text-foreground px-2">Clear</button>
+                  )}
+                  <button
+                    onClick={() => setSearchOpen(false)}
+                    className="p-1.5 rounded-full hover:bg-background/40 transition-colors text-muted-foreground hover:text-foreground"
+                    aria-label="Close search"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+              {settingsOpen && (
+                <SettingsMenu open={true} onOpen={() => {}} onClose={() => setSettingsOpen(false)} />
+              )}
+            </div>
+          )}
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      <main className="relative max-w-7xl mx-auto px-4 py-6">
+        {/* Overlay that swallows game clicks while a menu is open */}
+        {menuOpen && (
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => { setSearchOpen(false); setSettingsOpen(false); }}
+          />
+        )}
         {loading ? (
           <div className="text-center text-muted-foreground py-12">Loading games...</div>
         ) : filtered.length === 0 ? (
-          <div className="text-center text-muted-foreground py-12 animate-bubble-in">No games match your filters.</div>
+          <div className="text-center text-muted-foreground py-12">No games match your filters.</div>
         ) : (
-          <div key={filterKey} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-            {filtered.map((game, idx) => {
-              const onClick = (e: React.MouseEvent) => {
-                if (!game.link) return;
-                e.preventDefault();
-                openGame(game.link);
-              };
-              return (
-                <div
-                  key={game.id}
-                  onClick={onClick}
-                  className={`game-slot-filled aspect-[3/4] flex flex-col relative group ${
-                    filtersActive ? "animate-bubble-in card-sheen" : ""
-                  }`}
-                  style={filtersActive ? { animationDelay: `${Math.min(idx * 20, 400)}ms` } : undefined}
-                >
-                  <button
-                    onClick={(e) => handleToggleFav(e, game.id)}
-                    className="absolute top-1.5 right-1.5 z-[2] p-1 rounded-full bg-background/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
-                    aria-label={isFavorite(game.id) ? "Remove from favorites" : "Add to favorites"}
-                  >
-                    <Heart className={`w-4 h-4 transition-colors ${isFavorite(game.id) ? "fill-destructive text-destructive" : "text-muted-foreground hover:text-destructive"}`} />
-                  </button>
-                  {game.image ? (
-                    <img src={game.image} alt={game.name} className="w-full h-3/4 object-cover" loading="lazy" />
-                  ) : (
-                    <div className="w-full h-3/4 bg-muted flex items-center justify-center">
-                      <Gamepad2 className="w-8 h-8 text-muted-foreground" />
-                    </div>
-                  )}
-                  <div className="flex-1 px-2 py-1.5 flex items-start gap-1 min-h-0">
-                    <p className="text-[13px] leading-tight font-medium text-foreground flex-1 line-clamp-2 break-words">
-                      {game.name}
-                    </p>
-                    {game.link && <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0 mt-0.5" />}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <GameGrid
+            data={gridData}
+            games={filtered}
+            onOpen={openGame}
+            isFavorite={isFavorite}
+            onToggleFav={handleToggleFav}
+            gamesDisabled={menuOpen}
+          />
         )}
       </main>
       <ScrollButtons />
