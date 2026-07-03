@@ -1,11 +1,10 @@
-import { useState, useEffect, useRef } from "react";
-import { Settings, X, Download, Upload, ExternalLink, RotateCcw } from "lucide-react";
+import { useState, useEffect, useRef, MouseEvent } from "react";
+import { Settings, X, Download, Upload, RotateCcw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { useSpoof, resolveFaviconUrl } from "@/hooks/use-spoof";
-import { openCurrentPageInBlank } from "@/utils/about-blank";
 import { toast } from "@/hooks/use-toast";
+import { StarLayer, useStarShimmer } from "@/components/StarShimmer";
 
 async function gatherData() {
   const result: Record<string, unknown> = {
@@ -53,25 +52,28 @@ async function restoreData(data: Record<string, unknown>) {
   }
 }
 
-export const SettingsMenu = () => {
-  const [open, setOpen] = useState(false);
+interface Props {
+  open: boolean;
+  onOpen: (e: MouseEvent) => void;
+  onClose: () => void;
+}
+
+export const SettingsMenu = ({ open, onOpen, onClose }: Props) => {
   const { settings, update, reset, defaults } = useSpoof();
   const [title, setTitle] = useState(settings.title);
   const [favicon, setFavicon] = useState(settings.faviconUrl);
+  const { bursts, emit } = useStarShimmer();
   const panelRef = useRef<HTMLDivElement>(null);
+  const [originX, setOriginX] = useState<string>("right");
 
   useEffect(() => { setTitle(settings.title); setFavicon(settings.faviconUrl); }, [settings.title, settings.faviconUrl]);
 
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    const onClick = (e: MouseEvent) => {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) setOpen(false);
-    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
-    setTimeout(() => window.addEventListener("mousedown", onClick), 0);
-    return () => { window.removeEventListener("keydown", onKey); window.removeEventListener("mousedown", onClick); };
-  }, [open]);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
 
   const saveSpoof = () => {
     update({ title, faviconUrl: favicon });
@@ -105,86 +107,83 @@ export const SettingsMenu = () => {
     input.click();
   };
 
-  return (
-    <>
+  const handleClick = (e: MouseEvent) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    setOriginX(`${rect.left + rect.width / 2}px`);
+    onOpen(e);
+  };
+
+  const handlePanelClick = (e: React.MouseEvent) => {
+    const rect = panelRef.current?.getBoundingClientRect();
+    if (rect) emit(e.clientX - rect.left, e.clientY - rect.top);
+  };
+
+  if (!open) {
+    return (
       <button
-        onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all bg-secondary text-secondary-foreground border-border hover:border-primary/50 hover:scale-105"
+        onClick={handleClick}
+        className="header-pill"
         title="Settings"
       >
         <Settings className="w-3.5 h-3.5" />
         Settings
       </button>
+    );
+  }
 
-      {/* Sideways-expanding panel — sits inside header, does not cover Games logo */}
-      <div
-        className={`absolute top-1/2 -translate-y-1/2 right-4 h-[calc(100%-1.25rem)] max-w-[calc(100%-9rem)] z-30 ${open ? "pointer-events-auto" : "pointer-events-none"}`}
-        aria-hidden={!open}
-      >
-        <div
-          ref={panelRef}
-          className={`h-full origin-right transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-            open ? "w-[440px] max-w-full opacity-100 scale-x-100" : "w-0 opacity-0 scale-x-0"
-          }`}
-        >
-          <div className="settings-shimmer h-full w-full rounded-full border border-border bg-secondary/95 backdrop-blur-md shadow-xl overflow-hidden">
-            <div className={`h-full w-[440px] max-w-full px-5 py-3 flex items-center gap-4 transition-opacity duration-300 ${open ? "opacity-100 delay-200" : "opacity-0"}`}>
-              <div className="flex-1 grid grid-cols-2 gap-x-4 gap-y-2 min-w-0">
-                <div className="col-span-2 flex items-center justify-between">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-foreground">Settings</p>
-                  <button onClick={reset} className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1">
-                    <RotateCcw className="w-3 h-3" /> Reset
-                  </button>
-                </div>
-
-                <div className="space-y-1">
-                  <Label htmlFor="s-title" className="text-[10px] text-muted-foreground">Tab title</Label>
-                  <Input id="s-title" value={title} onChange={(e) => setTitle(e.target.value)} onBlur={saveSpoof}
-                    placeholder={defaults.title} className="h-7 text-xs rounded-full" />
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="s-fav" className="text-[10px] text-muted-foreground">Favicon domain</Label>
-                  <div className="relative">
-                    <Input id="s-fav" value={favicon} onChange={(e) => setFavicon(e.target.value)} onBlur={saveSpoof}
-                      placeholder={defaults.faviconUrl} className="h-7 text-xs rounded-full pr-8" />
-                    <img src={resolveFaviconUrl(favicon || defaults.faviconUrl)} alt="" className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-sm" />
-                  </div>
-                </div>
-
-                <div className="col-span-2 flex items-center justify-between bg-background/40 rounded-full px-3 py-1.5">
-                  <div>
-                    <p className="text-xs font-medium text-foreground">Open behavior</p>
-                    <p className="text-[10px] text-muted-foreground">{settings.openBehavior === "new-tab" ? "New tab" : "Existing window"}</p>
-                  </div>
-                  <Switch
-                    checked={settings.openBehavior === "same-tab"}
-                    onCheckedChange={(v) => update({ openBehavior: v ? "same-tab" : "new-tab" })}
-                  />
-                </div>
-
-                <div className="col-span-2 flex items-center gap-1.5">
-                  <button onClick={handleExport} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-border bg-background/40 hover:border-primary/50 transition-all">
-                    <Download className="w-3.5 h-3.5" /> Export
-                  </button>
-                  <button onClick={handleImport} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-border bg-background/40 hover:border-primary/50 transition-all">
-                    <Upload className="w-3.5 h-3.5" /> Import
-                  </button>
-                  <button onClick={() => openCurrentPageInBlank()} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-border bg-background/40 hover:border-primary/50 transition-all" title="Cloak in about:blank">
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-              <button
-                onClick={() => setOpen(false)}
-                className="shrink-0 p-1.5 rounded-full hover:bg-background/40 transition-colors text-muted-foreground hover:text-foreground"
-                aria-label="Close settings"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+  return (
+    <div
+      ref={panelRef}
+      onClick={handlePanelClick}
+      className="relative h-full w-full bubble-expand overflow-hidden rounded-full border border-border bg-secondary/95 backdrop-blur-md shadow-xl px-4 flex items-center gap-3"
+      style={{ ["--origin-x" as string]: originX }}
+    >
+      <StarLayer bursts={bursts} />
+      <Settings className="w-4 h-4 text-primary shrink-0" />
+      <div className="flex-1 grid grid-cols-[1fr_1fr_auto] gap-3 items-center min-w-0">
+        <div>
+          <Label className="text-[9px] uppercase tracking-wider text-muted-foreground">Tab title</Label>
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} onBlur={saveSpoof}
+            placeholder={defaults.title} className="h-7 text-xs rounded-full mt-0.5" />
+        </div>
+        <div>
+          <Label className="text-[9px] uppercase tracking-wider text-muted-foreground">Favicon domain</Label>
+          <div className="relative mt-0.5">
+            <Input value={favicon} onChange={(e) => setFavicon(e.target.value)} onBlur={saveSpoof}
+              placeholder={defaults.faviconUrl} className="h-7 text-xs rounded-full pr-8" />
+            <img src={resolveFaviconUrl(favicon || defaults.faviconUrl)} alt="" className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-sm" />
           </div>
         </div>
+        <div className="flex items-center gap-1 bg-background/40 rounded-full p-0.5 border border-border">
+          <button
+            onClick={() => update({ openBehavior: "new-tab" })}
+            className={`px-3 py-1 rounded-full text-[11px] font-medium transition-all ${settings.openBehavior === "new-tab" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >New window</button>
+          <button
+            onClick={() => update({ openBehavior: "same-tab" })}
+            className={`px-3 py-1 rounded-full text-[11px] font-medium transition-all ${settings.openBehavior === "same-tab" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >Current window</button>
+        </div>
       </div>
-    </>
+
+      <div className="flex items-center gap-1 shrink-0">
+        <button onClick={handleExport} className="header-pill" title="Export data">
+          <Download className="w-3.5 h-3.5" /> Export
+        </button>
+        <button onClick={handleImport} className="header-pill" title="Import data">
+          <Upload className="w-3.5 h-3.5" /> Import
+        </button>
+        <button onClick={reset} className="header-pill" title="Reset spoof">
+          <RotateCcw className="w-3.5 h-3.5" />
+        </button>
+        <button
+          onClick={onClose}
+          className="p-1.5 rounded-full hover:bg-background/40 transition-colors text-muted-foreground hover:text-foreground"
+          aria-label="Close settings"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
   );
 };
