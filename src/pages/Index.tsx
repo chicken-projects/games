@@ -33,10 +33,20 @@ const Index = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchOrigin, setSearchOrigin] = useState("right");
+  const [activeGame, setActiveGame] = useState<string | null>(null);
   const { toggle, isFavorite, count, favorites } = useFavorites();
   const { bursts: searchBursts, emit: emitSearch } = useStarShimmer();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchPanelRef = useRef<HTMLDivElement>(null);
+
+  const handleOpenGame = useCallback((url: string) => {
+    const inApp = openGame(url);
+    if (inApp) {
+      setActiveGame(url);
+      setSearchOpen(false);
+      setSearch("");
+    }
+  }, []);
 
   const menuOpen = searchOpen || settingsOpen;
 
