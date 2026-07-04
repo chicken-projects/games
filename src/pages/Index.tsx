@@ -260,7 +260,7 @@ const Index = () => {
           <GameGrid
             data={gridData}
             games={filtered}
-            onOpen={openGame}
+            onOpen={handleOpenGame}
             isFavorite={isFavorite}
             onToggleFav={handleToggleFav}
             gamesDisabled={menuOpen}
