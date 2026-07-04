@@ -140,29 +140,29 @@ export const SettingsMenu = ({ open, onOpen, onClose }: Props) => {
     >
       <StarLayer bursts={bursts} />
       <Settings className="w-4 h-4 text-primary shrink-0" />
-      <div className="flex-1 grid grid-cols-[1fr_1fr_auto] gap-3 items-center min-w-0">
-        <div>
-          <Label className="text-[9px] uppercase tracking-wider text-muted-foreground">Tab title</Label>
+      <div className="flex-1 flex items-center gap-2 min-w-0">
+        <div className="min-w-0 flex-1 flex items-center gap-1.5">
+          <Label className="text-[9px] uppercase tracking-wider text-muted-foreground shrink-0">Title</Label>
           <Input value={title} onChange={(e) => setTitle(e.target.value)} onBlur={saveSpoof}
-            placeholder={defaults.title} className="h-7 text-xs rounded-full mt-0.5" />
+            placeholder={defaults.title} className="h-7 text-xs rounded-full min-w-0" />
         </div>
-        <div>
-          <Label className="text-[9px] uppercase tracking-wider text-muted-foreground">Favicon domain</Label>
-          <div className="relative mt-0.5">
+        <div className="min-w-0 flex-1 flex items-center gap-1.5">
+          <Label className="text-[9px] uppercase tracking-wider text-muted-foreground shrink-0">Favicon</Label>
+          <div className="relative min-w-0 flex-1">
             <Input value={favicon} onChange={(e) => setFavicon(e.target.value)} onBlur={saveSpoof}
-              placeholder={defaults.faviconUrl} className="h-7 text-xs rounded-full pr-8" />
+              placeholder={defaults.faviconUrl} className="h-7 text-xs rounded-full pr-8 min-w-0" />
             <img src={resolveFaviconUrl(favicon || defaults.faviconUrl)} alt="" className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-sm" />
           </div>
         </div>
-        <div className="flex items-center gap-1 bg-background/40 rounded-full p-0.5 border border-border">
+        <div className="flex items-center gap-1 bg-background/40 rounded-full p-0.5 border border-border shrink-0">
           <button
             onClick={() => update({ openBehavior: "new-tab" })}
-            className={`px-3 py-1 rounded-full text-[11px] font-medium transition-all ${settings.openBehavior === "new-tab" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-          >New window</button>
+            className={`px-2.5 py-1 rounded-full text-[10px] font-medium transition-all ${settings.openBehavior === "new-tab" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >New</button>
           <button
             onClick={() => update({ openBehavior: "same-tab" })}
-            className={`px-3 py-1 rounded-full text-[11px] font-medium transition-all ${settings.openBehavior === "same-tab" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-          >Current window</button>
+            className={`px-2.5 py-1 rounded-full text-[10px] font-medium transition-all ${settings.openBehavior === "same-tab" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >Current</button>
         </div>
       </div>
 
@@ -172,9 +172,6 @@ export const SettingsMenu = ({ open, onOpen, onClose }: Props) => {
         </button>
         <button onClick={handleImport} className="header-pill" title="Import data">
           <Upload className="w-3.5 h-3.5" /> Import
-        </button>
-        <button onClick={reset} className="header-pill" title="Reset spoof">
-          <RotateCcw className="w-3.5 h-3.5" />
         </button>
         <button
           onClick={onClose}
