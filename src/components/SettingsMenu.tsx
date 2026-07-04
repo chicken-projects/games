@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, MouseEvent } from "react";
-import { Settings, X, Download, Upload, RotateCcw } from "lucide-react";
+import { Settings, X, Download, Upload } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSpoof, resolveFaviconUrl } from "@/hooks/use-spoof";
