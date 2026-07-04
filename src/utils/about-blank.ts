@@ -52,26 +52,26 @@ function buildBlankWrapper(url: string, title: string, favicon: string) {
 </body></html>`;
 }
 
-/** Open a game link honoring the spoof + open-behavior settings. */
-export function openGame(url: string) {
+/** Open a game link honoring the spoof + open-behavior settings.
+ *  Returns true if the caller should manage same-tab display via React state
+ *  (i.e. no navigation happened here).
+ */
+export function openGame(url: string): boolean {
   const { title, faviconUrl, openBehavior } = getSpoofSettings();
   const favicon = resolveFaviconUrl(faviconUrl);
 
   if (openBehavior === "same-tab") {
-    const returnHref = window.location.pathname + window.location.search;
-    const html = buildSameTabWrapper(url, title, favicon, returnHref);
-    document.open();
-    document.write(html);
-    document.close();
-    return;
+    // Handled in-app now — caller shows the iframe overlay.
+    return true;
   }
 
   const html = buildBlankWrapper(url, title, favicon);
   const win = window.open("about:blank", "_blank");
-  if (!win) return;
+  if (!win) return false;
   win.document.open();
   win.document.write(html);
   win.document.close();
+  return false;
 }
 
 export const openInAboutBlank = openGame;
