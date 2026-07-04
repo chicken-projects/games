@@ -65,8 +65,8 @@
 /* --- Group fieldset --- */
 .game-group-fieldset {
   border: 1px solid hsl(var(--border));
-  border-radius: 14px;
-  padding: 18px 14px 14px;
+  border-radius: 12px;
+  padding: 14px 10px 10px;
   margin: 0;
   position: relative;
   background: hsl(var(--card) / 0.35);
@@ -74,13 +74,13 @@
 }
 .game-group-fieldset:hover { border-color: hsl(var(--primary) / 0.4); }
 .game-group-legend {
-  padding: 0 10px;
-  font-size: 12px;
+  padding: 0 8px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: hsl(var(--muted-foreground));
-  margin-left: 8px;
+  margin-left: 6px;
 }
 
 /* --- Shimmer text --- */
