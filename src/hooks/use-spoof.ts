@@ -16,14 +16,19 @@ const DEFAULTS: SpoofSettings = {
   openBehavior: "new-tab",
 };
 
+/** Hand-picked, high-quality favicons for popular spoof targets. */
+const FAVICON_OVERRIDES: Record<string, string> = {
+  "classroom.google.com": "https://ssl.gstatic.com/classroom/ic_product_classroom_144.png",
+};
+
 /** Resolve a raw favicon input into an actual image URL. */
 export function resolveFaviconUrl(input: string): string {
   const v = (input || "").trim();
-  if (!v) return `https://www.google.com/s2/favicons?domain=classroom.google.com&sz=64`;
+  if (!v) return FAVICON_OVERRIDES["classroom.google.com"];
   if (v.startsWith("http://") || v.startsWith("https://")) return v;
   if (v.startsWith("//")) return "https:" + v;
-  // treat as domain — use Google's favicon service (reliable, CORS-friendly)
-  const domain = v.replace(/^\/+/, "").replace(/\/.*$/, "");
+  const domain = v.replace(/^\/+/, "").replace(/\/.*$/, "").toLowerCase();
+  if (FAVICON_OVERRIDES[domain]) return FAVICON_OVERRIDES[domain];
   return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=64`;
 }
 

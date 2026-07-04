@@ -83,14 +83,14 @@ function Card({
         <img src={game.image} alt={game.name} className="w-full flex-1 min-h-0 object-cover" loading="lazy" />
       ) : (
         <div className="w-full flex-1 min-h-0 bg-muted flex items-center justify-center">
-          <Gamepad2 className="w-8 h-8 text-muted-foreground" />
+          <Gamepad2 className="w-6 h-6 text-muted-foreground" />
         </div>
       )}
-      <div className="shrink-0 px-2 py-1.5 flex items-start gap-1">
-        <p className="text-[13px] leading-tight font-medium text-foreground flex-1 line-clamp-2 break-words">
+      <div className="shrink-0 px-1.5 py-1 flex items-start gap-1">
+        <p className="text-[11px] leading-tight font-medium text-foreground flex-1 line-clamp-2 break-words">
           {game.name}
         </p>
-        {game.link && <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0 mt-0.5" />}
+        {game.link && <ExternalLink className="w-2.5 h-2.5 text-muted-foreground shrink-0 mt-0.5" />}
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect, useRef, MouseEvent } from "react";
-import { Search, Gamepad, Heart, Filter, Check, X } from "lucide-react";
+import { useState, useMemo, useEffect, useRef, MouseEvent, useCallback } from "react";
+import { Search, Gamepad, Heart, Filter, Check, X, ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useGamesData } from "@/data/games";
@@ -33,10 +33,20 @@ const Index = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchOrigin, setSearchOrigin] = useState("right");
+  const [activeGame, setActiveGame] = useState<string | null>(null);
   const { toggle, isFavorite, count, favorites } = useFavorites();
   const { bursts: searchBursts, emit: emitSearch } = useStarShimmer();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchPanelRef = useRef<HTMLDivElement>(null);
+
+  const handleOpenGame = useCallback((url: string) => {
+    const inApp = openGame(url);
+    if (inApp) {
+      setActiveGame(url);
+      setSearchOpen(false);
+      setSearch("");
+    }
+  }, []);
 
   const menuOpen = searchOpen || settingsOpen;
 
@@ -250,7 +260,7 @@ const Index = () => {
           <GameGrid
             data={gridData}
             games={filtered}
-            onOpen={openGame}
+            onOpen={handleOpenGame}
             isFavorite={isFavorite}
             onToggleFav={handleToggleFav}
             gamesDisabled={menuOpen}
@@ -258,6 +268,43 @@ const Index = () => {
         )}
       </main>
       <ScrollButtons />
+
+      {/* In-app iframe for same-tab game launches. Hidden while search is open
+          so the user sees the library, but the iframe stays mounted so the
+          game keeps running. */}
+      {activeGame && (
+        <div
+          className={`fixed inset-0 z-40 bg-background transition-opacity ${searchOpen ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+        >
+          <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
+            <button
+              onClick={() => setActiveGame(null)}
+              className="header-pill bg-background/80 backdrop-blur-md shadow-lg"
+              title="Back to library"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" /> Back
+            </button>
+            <button
+              onClick={(e) => {
+                const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                setSearchOrigin(`${rect.left + rect.width / 2}px`);
+                setSearchOpen(true);
+              }}
+              className="header-pill bg-background/80 backdrop-blur-md shadow-lg"
+              title="Search"
+            >
+              <Search className="w-3.5 h-3.5" /> Search
+            </button>
+          </div>
+          <iframe
+            key={activeGame}
+            src={activeGame}
+            title="game"
+            className="w-full h-full border-0"
+            allow="fullscreen; gamepad; autoplay"
+          />
+        </div>
+      )}
     </div>
   );
 };
