@@ -59,7 +59,7 @@ interface Props {
 }
 
 export const SettingsMenu = ({ open, onOpen, onClose }: Props) => {
-  const { settings, update, reset, defaults } = useSpoof();
+  const { settings, update, defaults } = useSpoof();
   const [title, setTitle] = useState(settings.title);
   const [favicon, setFavicon] = useState(settings.faviconUrl);
   const { bursts, emit } = useStarShimmer();
