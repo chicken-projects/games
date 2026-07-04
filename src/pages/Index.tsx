@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect, useRef, MouseEvent } from "react";
-import { Search, Gamepad, Heart, Filter, Check, X } from "lucide-react";
+import { useState, useMemo, useEffect, useRef, MouseEvent, useCallback } from "react";
+import { Search, Gamepad, Heart, Filter, Check, X, ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useGamesData } from "@/data/games";
