@@ -135,34 +135,35 @@ export const SettingsMenu = ({ open, onOpen, onClose }: Props) => {
     <div
       ref={panelRef}
       onClick={handlePanelClick}
-      className="relative h-full w-full bubble-expand overflow-hidden rounded-full border border-border bg-secondary/95 backdrop-blur-md shadow-xl px-4 flex items-center gap-3"
+      className="relative h-full w-full bubble-expand overflow-hidden rounded-full border border-border bg-secondary/95 backdrop-blur-md shadow-xl px-4 flex items-center gap-2"
       style={{ ["--origin-x" as string]: originX }}
     >
       <StarLayer bursts={bursts} />
       <Settings className="w-4 h-4 text-primary shrink-0" />
-      <div className="flex-1 flex items-center gap-2 min-w-0">
+      <div className="flex-1 flex items-center gap-1.5 min-w-0">
         <div className="min-w-0 flex-1 flex items-center gap-1.5">
-          <Label className="text-[9px] uppercase tracking-wider text-muted-foreground shrink-0">Title</Label>
+          <Label className="sr-only">Tab title</Label>
           <Input value={title} onChange={(e) => setTitle(e.target.value)} onBlur={saveSpoof}
-            placeholder={defaults.title} className="h-7 text-xs rounded-full min-w-0" />
+            aria-label="Tab title" placeholder="Tab title" className="h-8 text-xs rounded-full min-w-0" />
         </div>
         <div className="min-w-0 flex-1 flex items-center gap-1.5">
-          <Label className="text-[9px] uppercase tracking-wider text-muted-foreground shrink-0">Favicon</Label>
+          <Label className="sr-only">Favicon domain</Label>
           <div className="relative min-w-0 flex-1">
             <Input value={favicon} onChange={(e) => setFavicon(e.target.value)} onBlur={saveSpoof}
-              placeholder={defaults.faviconUrl} className="h-7 text-xs rounded-full pr-8 min-w-0" />
+              aria-label="Favicon domain" placeholder="Favicon domain" className="h-8 text-xs rounded-full pr-8 min-w-0" />
             <img src={resolveFaviconUrl(favicon || defaults.faviconUrl)} alt="" className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-sm" />
           </div>
         </div>
-        <div className="flex items-center gap-1 bg-background/40 rounded-full p-0.5 border border-border shrink-0">
+        <div className="flex items-center gap-1 bg-background/40 rounded-full p-1 border border-border shrink-0" aria-label="Open games behavior">
+          <span className="pl-2 pr-1 text-[10px] font-medium text-muted-foreground">Open games</span>
           <button
             onClick={() => update({ openBehavior: "new-tab" })}
             className={`px-2.5 py-1 rounded-full text-[10px] font-medium transition-all ${settings.openBehavior === "new-tab" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-          >New</button>
+          >New window</button>
           <button
             onClick={() => update({ openBehavior: "same-tab" })}
             className={`px-2.5 py-1 rounded-full text-[10px] font-medium transition-all ${settings.openBehavior === "same-tab" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-          >Current</button>
+          >Current tab</button>
         </div>
       </div>
 

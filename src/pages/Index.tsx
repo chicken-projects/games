@@ -139,7 +139,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-20 bg-background/70 backdrop-blur-xl border-b border-border">
-        <div className="relative max-w-7xl mx-auto px-4 py-3 flex items-center gap-2 h-[62px]">
+        <div className="relative max-w-7xl mx-auto px-4 py-2.5 flex items-center gap-2 h-[72px]">
           {/* Always-visible Games logo */}
           <div className="flex items-center gap-2 shrink-0 z-30">
             <Gamepad className="w-6 h-6 text-primary" />
@@ -207,12 +207,12 @@ const Index = () => {
 
           {/* Expanding menu container — sits to the right of Games logo */}
           {menuOpen && (
-            <div className="absolute inset-y-2 left-[130px] right-4 z-30">
+            <div className="absolute inset-y-2 left-[118px] right-4 z-30">
               {searchOpen && (
                 <div
                   ref={searchPanelRef}
                   onClick={handleSearchPanelClick}
-                  className="relative h-full w-full bubble-expand overflow-hidden rounded-full border border-border bg-secondary/95 backdrop-blur-md shadow-xl px-4 flex items-center gap-3"
+                  className="search-bubble-panel relative h-full w-full bubble-expand overflow-hidden rounded-full border border-border bg-secondary/95 backdrop-blur-md shadow-xl px-5 flex items-center gap-3"
                   style={{ ["--origin-x" as string]: searchOrigin }}
                 >
                   <StarLayer bursts={searchBursts} />
