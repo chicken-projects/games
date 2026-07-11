@@ -126,7 +126,7 @@ export function GameGrid({ data, games, onOpen, isFavorite, onToggleFav, gamesDi
     return (
       <div {...gridProps}>
         {games.map((g) => (
-          <Card key={g.id} game={g} index={0} game={g} onOpen={onOpen} isFavorite={isFavorite} onToggleFav={onToggleFav} gamesDisabled={gamesDisabled} />
+          <Card key={g.id} game={g} index={0} onOpen={onOpen} isFavorite={isFavorite} onToggleFav={onToggleFav} gamesDisabled={gamesDisabled} />
         ))}
       </div>
     );
