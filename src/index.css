@@ -38,11 +38,15 @@
 }
 
 .game-slot-filled {
-  @apply border border-border rounded-md overflow-hidden cursor-pointer transition-all duration-300 ease-out bg-card;
+  @apply overflow-hidden cursor-pointer transition-all duration-300 ease-out bg-card;
   min-height: 0;
+  border: 0;
+  border-radius: 3px;
 }
 .game-slot-filled:hover {
-  @apply border-primary shadow-lg shadow-primary/20 -translate-y-0.5;
+  @apply shadow-lg shadow-primary/20 -translate-y-0.5;
+  outline: 1px solid hsl(var(--primary) / 0.75);
+  z-index: 2;
 }
 
 /* --- Game grid with variable sizes --- */
@@ -51,7 +55,11 @@
   grid-template-columns: repeat(auto-fill, minmax(66px, 1fr));
   grid-auto-flow: dense;
   grid-auto-rows: 34px;
-  gap: 3px;
+  gap: 1px;
+  padding: 1px;
+  border-radius: 6px;
+  background: hsl(var(--border));
+  overflow: hidden;
 }
 @media (min-width: 640px)  { .game-grid { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); grid-auto-rows: 36px; } }
 @media (min-width: 1024px) { .game-grid { grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); grid-auto-rows: 38px; } }
@@ -81,7 +89,7 @@
 .game-group-fieldset {
   border: 1px solid hsl(var(--border));
   border-radius: 8px;
-  padding: 9px 5px 5px;
+  padding: 8px 4px 4px;
   margin: 0;
   position: relative;
   background: hsl(var(--card) / 0.35);
