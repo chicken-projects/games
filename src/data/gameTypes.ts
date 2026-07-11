@@ -1,4 +1,4 @@
-export type GameSize = "landscape" | "portrait" | "square";
+export type GameSize = "mini" | "landscape" | "portrait" | "square" | "wide" | "tall" | "hero" | "strip";
 
 export interface Game {
   id: number;
